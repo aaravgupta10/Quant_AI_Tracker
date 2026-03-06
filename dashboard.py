@@ -59,7 +59,7 @@ st.divider()
 
 @st.cache_data(ttl=60)
 def pull_vault_data():
-    metrics_res = supabase.table('portfolio_metrics').select('*').order('date', asc=True).execute()
+    metrics_res = supabase.table('portfolio_metrics').select('*').order('date', desc=False).execute()
     tx_res = supabase.table('transactions').select('*').execute()
     return metrics_res.data, tx_res.data
 
