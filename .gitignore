@@ -1,0 +1,10 @@
+# Security
+.env
+
+# Environments
+venv/
+env/
+__pycache__/
+
+# Mac junk (if you are on a Mac)
+.DS_Store
