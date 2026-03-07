@@ -70,7 +70,14 @@ def build_time_machine(ledger_df):
         stock_value_today = 0.0
         for ticker, qty in current_positions.items():
             if qty > 0:
-                price_today = price_matrix.at[current_date, ticker]
+                # Institutional Armor: Safely handle non-index tickers or missing data
+                try:
+                    price_today = float(price_matrix.at[current_date, ticker])
+                    if pd.isna(price_today):
+                        price_today = 0.0
+                except KeyError:
+                    # If the ticker wasn't downloaded, default its value to 0 for this specific day
+                    price_today = 0.0
                 if pd.notna(price_today):
                     stock_value_today += (qty * price_today)
         
