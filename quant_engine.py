@@ -32,15 +32,19 @@ def build_time_machine(ledger_df):
         .execute()
         
     prices_df = pd.DataFrame(market_response.data)
+    if prices_df.empty:
+        return pd.DataFrame()
+        
     prices_df['date'] = pd.to_datetime(prices_df['date'])
     price_matrix = prices_df.pivot(index='date', columns='ticker', values='close_price')
     
+    # INSTITUTIONAL FIX 1: Forward Fill (Weekends) and Backward Fill (Initial listing delays)
     calendar = pd.date_range(start=start_date, end=end_date, freq='D')
-    price_matrix = price_matrix.reindex(calendar).ffill()
+    price_matrix = price_matrix.reindex(calendar).ffill().bfill()
     
     daily_nav = []
     current_cash = 0.0
-    net_invested = 0.0 # Tracking actual cash injected vs withdrawn
+    net_invested = 0.0 
     current_positions = {ticker: 0.0 for ticker in tickers_traded}
     
     for current_date in calendar:
@@ -70,30 +74,37 @@ def build_time_machine(ledger_df):
         stock_value_today = 0.0
         for ticker, qty in current_positions.items():
             if qty > 0:
-                # Institutional Armor: Safely handle non-index tickers or missing data
                 try:
                     price_today = float(price_matrix.at[current_date, ticker])
                     if pd.isna(price_today):
                         price_today = 0.0
                 except KeyError:
-                    # If the ticker wasn't downloaded, default its value to 0 for this specific day
                     price_today = 0.0
                 if pd.notna(price_today):
                     stock_value_today += (qty * price_today)
         
-        total_nav = current_cash + stock_value_today
+        # INSTITUTIONAL FIX 2: NAV is Strictly Invested Equity (No Cash)
+        total_nav = stock_value_today
+        
         daily_nav.append({
             'date': current_date.strftime('%Y-%m-%d'),
             'total_nav': round(total_nav, 2),
-            'net_invested': round(net_invested, 2) # Adding this to calculate P&L easily
+            'net_invested': round(net_invested, 2)
         })
         
     return pd.DataFrame(daily_nav)
 
 def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     print("Fetching Nifty 50 Benchmark for Risk Math...")
-    start_date = nav_df['date'].min()
-    end_date = nav_df['date'].max()
+    
+    # INSTITUTIONAL FIX 3: Filter out days with zero equity to prevent infinite volatility math
+    active_nav_df = nav_df[nav_df['total_nav'] > 0].copy()
+    
+    if active_nav_df.empty or len(active_nav_df) < 2:
+        return {"Max Drawdown": 0.0, "Beta": 0.0, "Sharpe Ratio": 0.0, "Alpha": 0.0}
+
+    start_date = active_nav_df['date'].min()
+    end_date = active_nav_df['date'].max()
     
     benchmark = yf.Ticker('^NSEI')
     bench_hist = benchmark.history(start=start_date, end=pd.to_datetime(end_date) + pd.Timedelta(days=1))
@@ -102,12 +113,15 @@ def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     bench_df['Date'] = bench_df['Date'].dt.tz_localize(None).dt.strftime('%Y-%m-%d')
     bench_df.rename(columns={'Date': 'date', 'Close': 'nifty_close'}, inplace=True)
     
-    df = pd.merge(nav_df, bench_df, on='date', how='left')
-    df['nifty_close'] = df['nifty_close'].ffill()
+    df = pd.merge(active_nav_df, bench_df, on='date', how='left')
+    df['nifty_close'] = df['nifty_close'].ffill().bfill()
     
     df['port_return'] = df['total_nav'].pct_change()
     df['bench_return'] = df['nifty_close'].pct_change()
     df = df.dropna()
+    
+    if df.empty:
+        return {"Max Drawdown": 0.0, "Beta": 0.0, "Sharpe Ratio": 0.0, "Alpha": 0.0}
     
     cumulative_returns = (1 + df['port_return']).cumprod()
     peak = cumulative_returns.cummax()
@@ -115,56 +129,68 @@ def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     max_drawdown = drawdown.min()
     
     cov_matrix = np.cov(df['port_return'], df['bench_return'])
-    beta = cov_matrix[0, 1] / cov_matrix[1, 1]
+    beta = cov_matrix[0, 1] / cov_matrix[1, 1] if cov_matrix[1, 1] != 0 else 0
     
     trading_days = 252
     ann_port_return = df['port_return'].mean() * trading_days
     ann_bench_return = df['bench_return'].mean() * trading_days
     ann_port_volatility = df['port_return'].std() * np.sqrt(trading_days)
     
-    sharpe_ratio = (ann_port_return - risk_free_rate) / ann_port_volatility
+    sharpe_ratio = (ann_port_return - risk_free_rate) / ann_port_volatility if ann_port_volatility != 0 else 0
     alpha = ann_port_return - (risk_free_rate + beta * (ann_bench_return - risk_free_rate))
     
     return {
-        "Max Drawdown": float(max_drawdown),
-        "Beta": float(beta),
-        "Sharpe Ratio": float(sharpe_ratio),
-        "Alpha": float(alpha)
+        "Max Drawdown": float(max_drawdown) if pd.notna(max_drawdown) else 0.0,
+        "Beta": float(beta) if pd.notna(beta) else 0.0,
+        "Sharpe Ratio": float(sharpe_ratio) if pd.notna(sharpe_ratio) else 0.0,
+        "Alpha": float(alpha) if pd.notna(alpha) else 0.0
     }
 
 if __name__ == "__main__":
     print("--- INITIATING QUANT ENGINE (PHASE 4 FINAL) ---")
     ledger_df = fetch_ledger()
     
-    if ledger_df is not None:
+    if ledger_df is not None and not ledger_df.empty:
         nav_history = build_time_machine(ledger_df)
-        metrics = calculate_risk_metrics(nav_history)
         
-        # Get the absolute latest numbers for P&L
-        current_nav = nav_history.iloc[-1]['total_nav']
-        net_invested = nav_history.iloc[-1]['net_invested']
-        all_time_pnl = current_nav - net_invested
-        pnl_percentage = (all_time_pnl / net_invested) * 100 if net_invested > 0 else 0
+        if not nav_history.empty:
+            metrics = calculate_risk_metrics(nav_history)
+            
+            current_nav = nav_history.iloc[-1]['total_nav']
+            net_invested = nav_history.iloc[-1]['net_invested']
+            all_time_pnl = current_nav - net_invested
+            pnl_percentage = (all_time_pnl / net_invested) * 100 if net_invested > 0 else 0
 
-        print("\n=== ABSOLUTE PERFORMANCE ===")
-        print(f"Total Net Cash Deposited   : ₹{net_invested:,.2f}")
-        print(f"Current Portfolio Value    : ₹{current_nav:,.2f}")
-        print(f"All-Time Profit/Loss       : ₹{all_time_pnl:,.2f} ({pnl_percentage:.2f}%)")
-        
-        print("\n=== RISK & ALPHA METRICS ===")
-        print(f"Portfolio Alpha            : {metrics['Alpha'] * 100:.2f}%")
-        print(f"Portfolio Beta             : {metrics['Beta']:.2f}")
-        print(f"Sharpe Ratio               : {metrics['Sharpe Ratio']:.2f}")
-        print(f"Maximum Drawdown           : {metrics['Max Drawdown'] * 100:.2f}%")
-        
-        print("\nSaving metrics to the Supabase Vault...")
-        today_str = datetime.now().strftime('%Y-%m-%d')
-        supabase.table('portfolio_metrics').upsert({
-            "date": today_str,
-            "total_nav": current_nav,
-            "portfolio_beta": round(metrics['Beta'], 4),
-            "portfolio_sharpe": round(metrics['Sharpe Ratio'], 4),
-            "max_drawdown": round(metrics['Max Drawdown'], 4)
-        }).execute()
-        
-    print("\n--- ENGINE EXECUTION COMPLETE ---")
+            print("\n=== ABSOLUTE PERFORMANCE ===")
+            print(f"Total Net Cash Deposited   : ₹{net_invested:,.2f}")
+            print(f"Current Invested Equity    : ₹{current_nav:,.2f}")
+            print(f"All-Time Profit/Loss       : ₹{all_time_pnl:,.2f} ({pnl_percentage:.2f}%)")
+            
+            print("\n=== RISK & ALPHA METRICS ===")
+            print(f"Portfolio Alpha            : {metrics['Alpha'] * 100:.2f}%")
+            print(f"Portfolio Beta             : {metrics['Beta']:.2f}")
+            print(f"Sharpe Ratio               : {metrics['Sharpe Ratio']:.2f}")
+            print(f"Maximum Drawdown           : {metrics['Max Drawdown'] * 100:.2f}%")
+            
+            print("\nSaving metrics to the Supabase Vault...")
+            
+            # Rebuild the full curve history in the database, not just today
+            records_to_upsert = []
+            for _, row in nav_history.iterrows():
+                # Only upload active days to avoid polluting the DB with 0s
+                if row['total_nav'] > 0:
+                    records_to_upsert.append({
+                        "date": row['date'],
+                        "total_nav": row['total_nav'],
+                        "portfolio_beta": round(metrics['Beta'], 4),
+                        "portfolio_sharpe": round(metrics['Sharpe Ratio'], 4),
+                        "max_drawdown": round(metrics['Max Drawdown'], 4),
+                        "alpha": round(metrics['Alpha'], 4)  # <-- ALPHA SECURELY ADDED
+                    })
+            
+            # Batch upload the cleaned historical curve
+            for i in range(0, len(records_to_upsert), 500):
+                batch = records_to_upsert[i : i + 500]
+                supabase.table('portfolio_metrics').upsert(batch, on_conflict="date").execute()
+                
+            print("\n--- ENGINE EXECUTION COMPLETE ---")

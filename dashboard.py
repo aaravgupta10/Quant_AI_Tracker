@@ -126,6 +126,11 @@ def get_live_prices_safely(tickers):
         
     return prices
 
+# --- GLOBAL LIVE EQUITY CALCULATION ---
+current_tickers = list(active_positions.keys())
+live_prices = get_live_prices_safely(current_tickers)
+live_equity = sum([live_prices.get(t, 0.0) * active_positions[t] for t in current_tickers])
+
 # --- CREATE 6 TABS ---
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Portfolio Curve", 
@@ -144,7 +149,8 @@ with tab1:
     if metrics_data:
         m = metrics_data[-1] 
         col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("Current Total NAV", f"₹{m['total_nav']:,.2f}")
+        # Bypassing the static DB to show true live equity
+        col1.metric("Live Invested Equity", f"₹{live_equity:,.2f}") 
         col2.metric("Portfolio Alpha", f"{m.get('alpha', 0)*100:.2f}%") 
         col3.metric("Portfolio Beta", f"{m['portfolio_beta']:.2f}")
         col4.metric("Sharpe Ratio", f"{m['portfolio_sharpe']:.2f}")
