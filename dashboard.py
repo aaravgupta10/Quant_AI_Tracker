@@ -188,11 +188,14 @@ with tab2:
         st.warning("You need active stock positions to use the rebalancer.")
     else:
         with st.spinner("Fetching live market prices..."):
-            live_data = yf.download(current_tickers, period="1d")['Close']
+            live_data = yf.download(current_tickers, period="5d")['Close']
             total_stock_value = 0
             live_prices = {}
             for ticker in current_tickers:
-                price = float(live_data[ticker].iloc[-1]) if len(current_tickers) > 1 else float(live_data.iloc[-1])
+                if len(current_tickers) > 1:
+                    price = float(live_data[ticker].dropna().iloc[-1])
+                else:
+                    price = float(live_data.dropna().iloc[-1])
                 live_prices[ticker] = price
                 total_stock_value += (price * active_positions[ticker])
             total_portfolio_value = total_stock_value + cash_balance
