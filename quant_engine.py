@@ -22,8 +22,6 @@ def fetch_ledger():
 def build_time_machine(ledger_df):
     start_date = ledger_df['date'].min().strftime('%Y-%m-%d')
     end_date = datetime.now().strftime('%Y-%m-%d')
-    
-    # Strictly Equities Only
     tickers_traded = ledger_df[ledger_df['ticker'] != 'CASH']['ticker'].unique().tolist()
     
     market_response = supabase.table('market_data') \
@@ -33,8 +31,7 @@ def build_time_machine(ledger_df):
         .execute()
         
     prices_df = pd.DataFrame(market_response.data)
-    if prices_df.empty:
-        return pd.DataFrame()
+    if prices_df.empty: return pd.DataFrame()
         
     prices_df['date'] = pd.to_datetime(prices_df['date'])
     price_matrix = prices_df.pivot(index='date', columns='ticker', values='close_price')
@@ -42,76 +39,71 @@ def build_time_machine(ledger_df):
     price_matrix = price_matrix.reindex(calendar).ffill().bfill()
     
     daily_nav = []
-    current_positions = {t: 0.0 for t in tickers_traded}
-    fallback_prices = {t: 0.0 for t in tickers_traded} # Price Memory System
+    current_cash = 0.0
+    net_invested = 0.0 
+    current_positions = {ticker: 0.0 for ticker in tickers_traded}
     
-    # Mutual Fund Unitization Variables
-    unit_nav = 100.0  
-    total_units = 0.0
-    previous_equity_value = 0.0
-    equity_net_invested = 0.0 
+    # Mutual Fund Variables
+    unit_nav = 100.0
+    prev_total_nav = 0.0
     
     for current_date in calendar:
-        # 1. Update Market Prices (with Memory Fallback)
-        for ticker in tickers_traded:
-            try:
-                p = float(price_matrix.at[current_date, ticker])
-                if pd.notna(p) and p > 0:
-                    fallback_prices[ticker] = p
-            except:
-                pass
-                
-        # 2. Calculate Organic Growth (Before any trades today)
-        starting_equity = sum(qty * fallback_prices.get(t, 0) for t, qty in current_positions.items())
+        trades_today = ledger_df[ledger_df['date'] == current_date]
+        daily_stock_flow = 0.0 # Track money moving into stocks today
         
-        if previous_equity_value > 0:
-            daily_return = (starting_equity / previous_equity_value) - 1.0
+        for _, trade in trades_today.iterrows():
+            action = trade['action']
+            ticker = trade['ticker']
+            total_value = float(trade['quantity']) * float(trade['price'])
+            
+            if ticker == 'CASH':
+                if action == 'DEPOSIT': 
+                    current_cash += total_value
+                    net_invested += total_value
+                elif action == 'WITHDRAW': 
+                    current_cash -= total_value
+                    net_invested -= total_value
+            else:
+                qty = float(trade['quantity'])
+                if action == 'BUY':
+                    current_cash -= total_value
+                    current_positions[ticker] += qty
+                    daily_stock_flow += total_value
+                elif action == 'SELL':
+                    current_cash += total_value
+                    current_positions[ticker] -= qty
+                    daily_stock_flow -= total_value
+        
+        stock_value_today = 0.0
+        for ticker, qty in current_positions.items():
+            if qty > 0:
+                try:
+                    price_today = float(price_matrix.at[current_date, ticker])
+                    if pd.isna(price_today): price_today = 0.0
+                except KeyError:
+                    price_today = 0.0
+                if pd.notna(price_today):
+                    stock_value_today += (qty * price_today)
+        
+        total_nav = stock_value_today
+        
+        # TIME-WEIGHTED RETURN MATH (Unitized Accounting)
+        if prev_total_nav > 0:
+            # Remove today's cash injection from the growth calculation
+            organic_growth = total_nav - daily_stock_flow
+            daily_return = (organic_growth - prev_total_nav) / prev_total_nav
         else:
             daily_return = 0.0
             
-        if total_units > 0:
-            unit_nav *= (1.0 + daily_return)
-        else:
-            unit_nav = 100.0
-            
-        # 3. Process Trades (Capital Inflows/Outflows)
-        trades_today = ledger_df[ledger_df['date'] == current_date]
-        daily_inflow = 0.0
-        
-        for _, trade in trades_today.iterrows():
-            ticker = trade['ticker']
-            if ticker == 'CASH': continue # CASH IS DEAD TO US
-            
-            action = trade['action']
-            qty = float(trade['quantity'])
-            price = float(trade['price'])
-            trade_val = qty * price
-            
-            # Hardcode the execution price into memory so it never drops to zero
-            fallback_prices[ticker] = price 
-            
-            if action == 'BUY':
-                current_positions[ticker] += qty
-                equity_net_invested += trade_val
-                daily_inflow += trade_val
-            elif action == 'SELL':
-                current_positions[ticker] -= qty
-                equity_net_invested -= trade_val
-                daily_inflow -= trade_val
-                
-        # 4. Issue or Redeem Mutual Fund Units
-        if daily_inflow != 0 and unit_nav > 0:
-            total_units += (daily_inflow / unit_nav)
-            
-        # 5. Lock EOD Equity
-        ending_equity = sum(qty * fallback_prices.get(t, 0) for t, qty in current_positions.items())
-        previous_equity_value = ending_equity
+        unit_nav = unit_nav * (1 + daily_return)
+        prev_total_nav = total_nav
         
         daily_nav.append({
             'date': current_date.strftime('%Y-%m-%d'),
-            'total_nav': round(ending_equity, 2), # Pure Stock Value
-            'unit_nav': round(unit_nav, 4),       # Pure MF Performance Metric
-            'net_invested': round(equity_net_invested, 2)
+            'total_nav': round(total_nav, 2),
+            'unit_nav': round(unit_nav, 4), # Saving the pure performance metric
+            'net_invested': round(net_invested, 2),
+            'stock_flow': round(daily_stock_flow, 2)
         })
         
     return pd.DataFrame(daily_nav)
@@ -119,7 +111,7 @@ def build_time_machine(ledger_df):
 def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     print("Fetching Nifty 50 Benchmark for Risk Math...")
     
-    # Use Unit NAV for flawless Alpha/Beta
+    # Calculate Alpha/Beta strictly using the Unit NAV (Performance), not Asset Value
     active_nav_df = nav_df[nav_df['unit_nav'] > 0].copy()
     if active_nav_df.empty or len(active_nav_df) < 2:
         return {"Max Drawdown": 0.0, "Beta": 0.0, "Sharpe Ratio": 0.0, "Alpha": 0.0}
@@ -137,13 +129,12 @@ def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     df = pd.merge(active_nav_df, bench_df, on='date', how='left')
     df['nifty_close'] = df['nifty_close'].ffill().bfill()
     
-    # MAGIC BULLET: Returns calculated strictly on MF Units, ignoring cash deposits completely
+    # Returns calculated on the pure 100-base NAV
     df['port_return'] = df['unit_nav'].pct_change()
     df['bench_return'] = df['nifty_close'].pct_change()
     df = df.dropna()
     
-    if df.empty:
-        return {"Max Drawdown": 0.0, "Beta": 0.0, "Sharpe Ratio": 0.0, "Alpha": 0.0}
+    if df.empty: return {"Max Drawdown": 0.0, "Beta": 0.0, "Sharpe Ratio": 0.0, "Alpha": 0.0}
     
     cumulative_returns = (1 + df['port_return']).cumprod()
     peak = cumulative_returns.cummax()
@@ -181,15 +172,14 @@ if __name__ == "__main__":
             current_nav = nav_history.iloc[-1]['total_nav']
             unit_nav = nav_history.iloc[-1]['unit_nav']
             net_invested = nav_history.iloc[-1]['net_invested']
-            
             all_time_pnl = current_nav - net_invested
             pnl_percentage = (all_time_pnl / net_invested) * 100 if net_invested > 0 else 0
 
             print("\n=== ABSOLUTE PERFORMANCE ===")
-            print(f"Total Net Capital Invested : ₹{net_invested:,.2f}")
-            print(f"Total Asset Value (NAV)    : ₹{current_nav:,.2f}")
-            print(f"Mutual Fund Unit NAV       : ₹{unit_nav:,.4f}")
-            print(f"All-Time Profit/Loss       : ₹{all_time_pnl:,.2f} ({pnl_percentage:.2f}%)")
+            print(f"Total Asset Value (Total NAV) : ₹{current_nav:,.2f}")
+            print(f"Total Cash Deposited          : ₹{net_invested:,.2f}")
+            print(f"Mutual Fund Unit NAV (Perf)   : ₹{unit_nav:,.4f}")
+            print(f"All-Time Profit/Loss          : ₹{all_time_pnl:,.2f} ({pnl_percentage:.2f}%)")
             
             print("\n=== RISK & ALPHA METRICS ===")
             print(f"Portfolio Alpha            : {metrics['Alpha'] * 100:.2f}%")
@@ -198,13 +188,13 @@ if __name__ == "__main__":
             print(f"Maximum Drawdown           : {metrics['Max Drawdown'] * 100:.2f}%")
             
             print("\nSaving metrics to the Supabase Vault...")
-            
             records_to_upsert = []
             for _, row in nav_history.iterrows():
                 if row['total_nav'] > 0:
                     records_to_upsert.append({
                         "date": row['date'],
                         "total_nav": row['total_nav'],
+                        "unit_nav": row.get('unit_nav', 100.0), # Uploading the pure performance
                         "portfolio_beta": round(metrics['Beta'], 4),
                         "portfolio_sharpe": round(metrics['Sharpe Ratio'], 4),
                         "max_drawdown": round(metrics['Max Drawdown'], 4),
