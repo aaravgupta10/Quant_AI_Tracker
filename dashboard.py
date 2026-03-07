@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from nav_utils import build_portfolio_state
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -45,33 +46,47 @@ def pull_vault_data():
 
 metrics_data, tx_data = pull_vault_data()
 
-# Strict Equity Tracking (Cash is Eradicated)
-positions = {}
-equity_net_invested = 0.0
+# Unified portfolio state (stocks + cash)
+state = build_portfolio_state(pd.DataFrame(tx_data) if tx_data else pd.DataFrame())
+active_positions = state['active_positions']
+cash_balance = float(state['cash_balance'])
+net_external_invested = float(state['net_external_invested'])
+legacy_equity_net_invested = float(state['legacy_equity_net_invested'])
 
-if tx_data:
-    df_tx = pd.DataFrame(tx_data)
-    for _, row in df_tx.iterrows():
-        ticker = row['ticker']
-        if ticker == 'CASH': continue 
-        
-        qty = float(row['quantity'])
-        price = float(row['price'])
-        action = row['action']
-        val = qty * price
-        
-        if action == 'BUY':
-            positions[ticker] = positions.get(ticker, 0) + qty
-            equity_net_invested += val
-        elif action == 'SELL':
-            positions[ticker] = positions.get(ticker, 0) - qty
-            equity_net_invested -= val
-
-active_positions = {t: q for t, q in positions.items() if q > 0}
 current_tickers = list(active_positions.keys())
 
 @st.cache_data(ttl=60)
+def get_market_data_prices(tickers):
+    """Fetch the latest available close price from the Supabase market_data table."""
+    prices = {t: 0.0 for t in tickers}
+    if not tickers:
+        return prices
+
+    try:
+        result = (supabase.table('market_data')
+                  .select('date,ticker,close_price')
+                  .in_('ticker', tickers)
+                  .order('date', desc=True)
+                  .limit(5000)
+                  .execute())
+        rows = result.data or []
+        seen = set()
+        for row in rows:
+            ticker = row.get('ticker')
+            if not ticker or ticker in seen:
+                continue
+            prices[ticker] = float(row.get('close_price') or 0.0)
+            seen.add(ticker)
+            if len(seen) == len(tickers):
+                break
+    except Exception:
+        pass
+    return prices
+
+
+@st.cache_data(ttl=60)
 def get_live_prices_safely(tickers):
+    """Fallback to Yahoo Finance if Supabase market data is unavailable."""
     prices = {t: 0.0 for t in tickers}
     if not tickers: return prices
     try:
@@ -80,17 +95,64 @@ def get_live_prices_safely(tickers):
         for t in tickers:
             try:
                 series = close_data[t].dropna() if isinstance(close_data, pd.DataFrame) and t in close_data.columns else close_data.dropna()
-                if not series.empty: prices[t] = float(series.iloc[-1])
-            except: continue
-    except: pass
+                if not series.empty:
+                    prices[t] = float(series.iloc[-1])
+            except:
+                continue
+    except:
+        pass
     return prices
 
-# LIVE P&L MATH
-live_prices = get_live_prices_safely(current_tickers)
-live_equity = sum([live_prices.get(t, 0.0) * active_positions[t] for t in current_tickers])
 
-all_time_pnl = live_equity - equity_net_invested
-pnl_pct = (all_time_pnl / abs(equity_net_invested) * 100) if equity_net_invested != 0 else 0.0
+@st.cache_data(ttl=60)
+def refresh_market_data(tickers):
+    """Update Supabase market_data for the given tickers using the latest Yahoo close price."""
+    if not tickers:
+        return "No tickers to refresh."
+
+    records = []
+    for t in tickers:
+        try:
+            hist = yf.Ticker(t).history(period="5d")
+            if hist.empty:
+                continue
+            latest = hist['Close'].dropna().iloc[-1]
+            latest_date = hist.index[-1].strftime('%Y-%m-%d')
+            records.append({
+                "date": latest_date,
+                "ticker": t,
+                "close_price": round(float(latest), 2),
+            })
+        except Exception:
+            continue
+
+    if not records:
+        return "No market data could be refreshed."
+
+    try:
+        for i in range(0, len(records), 500):
+            supabase.table('market_data').upsert(records[i:i+500], on_conflict="date,ticker").execute()
+        return f"Refreshed market_data for {len(records)} tickers."
+    except Exception as e:
+        return f"Failed refreshing market_data: {e}"
+
+
+# LIVE P&L MATH
+market_prices = get_market_data_prices(current_tickers)
+missing_tickers = [t for t, p in market_prices.items() if p == 0.0]
+if missing_tickers:
+    market_prices.update(get_live_prices_safely(missing_tickers))
+
+live_prices = market_prices
+live_equity = sum([live_prices.get(t, 0.0) * active_positions[t] for t in current_tickers])
+live_total_nav = live_equity + cash_balance
+
+# Track which tickers required a Yahoo Finance fallback
+fallback_tickers = [t for t in missing_tickers if live_prices.get(t, 0.0) > 0]
+
+net_invested_for_pnl = net_external_invested if abs(net_external_invested) > 1e-9 else legacy_equity_net_invested
+all_time_pnl = live_total_nav - net_invested_for_pnl
+pnl_pct = (all_time_pnl / abs(net_invested_for_pnl) * 100) if net_invested_for_pnl != 0 else 0.0
 
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Portfolio Curve", "⚖️ Auto-Rebalancer", "🎲 Monte Carlo Risk", 
@@ -101,9 +163,24 @@ with tab1:
     st.subheader("Macro Risk & Performance")
     col1, col2, col3, col4, col5 = st.columns(5)
     
-    col1.metric("Total Asset Value", f"₹{live_equity:,.2f}")
+    col1.metric("Total Asset Value", f"₹{live_total_nav:,.2f}")
     col2.metric("All-Time Profit/Loss", f"₹{all_time_pnl:,.2f}", f"{pnl_pct:.2f}%")
-    
+
+    if fallback_tickers:
+        st.caption(f"Prices for {', '.join(fallback_tickers)} fetched via Yahoo Finance (fallback from Supabase market_data).")
+    else:
+        st.caption("Prices sourced from Supabase market_data.")
+    st.caption(f"Included cash balance: Rs{cash_balance:,.2f}")
+
+    if st.button("Refresh Supabase market_data now"):
+        with st.spinner("Updating market_data from Yahoo Finance..."):
+            refresh_result = refresh_market_data(current_tickers)
+            st.success(refresh_result)
+            # Clear caches so the updated market_data is used immediately
+            pull_vault_data.clear()
+            get_market_data_prices.clear()
+            get_live_prices_safely.clear()
+
     if metrics_data:
         m = metrics_data[-1] 
         col3.metric("Portfolio Alpha", f"{m.get('alpha', 0)*100:.2f}%") 
@@ -173,7 +250,7 @@ with tab2:
     else:
         if live_equity <= 0: st.error("Cannot calculate rebalance: Market data unavailable.")
         else:
-            st.info(f"**Live Invested Equity:** ₹{live_equity:,.2f}")
+            st.info(f"**Live Total NAV:** ₹{live_total_nav:,.2f}")
             targets = {}
             target_sum = 0
             cols = st.columns(min(len(current_tickers), 4))
