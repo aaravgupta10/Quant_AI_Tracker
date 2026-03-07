@@ -233,6 +233,8 @@ with tab3:
 # ==========================================
 with tab4:
     st.subheader("Pre-Trade Risk Analysis")
+    st.info("💡 **Note:** If you just want to check the stats for your current portfolio, enter a ticker of any stock already in your portfolio.")
+    
     target_ticker = st.text_input("Enter Target Ticker (e.g., ITC):").strip().upper()
     if target_ticker and not target_ticker.endswith('.NS') and target_ticker != "^NSEI":
         target_ticker = f"{target_ticker}.NS"
@@ -242,19 +244,30 @@ with tab4:
             st.warning("Please enter a ticker and ensure portfolio has stocks.")
         else:
             with st.spinner(f"Calculating matrix for {target_ticker}..."):
-                all_tickers = current_tickers + [target_ticker, "^NSEI"]
+                # Deduplicate the download list to prevent API errors
+                all_tickers = list(dict.fromkeys(current_tickers + [target_ticker, "^NSEI"]))
                 data = yf.download(all_tickers, period="1y", interval="1d")['Close']
                 returns = data.pct_change().dropna()
+                
                 returns['Current_Portfolio'] = returns[current_tickers].mean(axis=1) if len(current_tickers) > 1 else returns[current_tickers[0]]
                 
                 col_macro, col_target = st.columns(2)
                 with col_macro: st.info(f"**Current Portfolio vs Nifty 50:** {returns['Current_Portfolio'].corr(returns['^NSEI']):.2f}")
                 with col_target: st.info(f"**{target_ticker} vs Current Portfolio:** {returns[target_ticker].corr(returns['Current_Portfolio']):.2f}")
 
-                corr_matrix = returns[current_tickers + [target_ticker]].corr()
-                corr_df = pd.DataFrame(corr_matrix[target_ticker].drop(target_ticker)).reset_index()
-                corr_df.columns = ['Stock', 'Correlation']
-                st.dataframe(corr_df.style.background_gradient(cmap='RdYlGn_r'), hide_index=True)
+                # Deduplicate the matrix calculation to prevent length mismatch errors
+                analysis_tickers = list(dict.fromkeys(current_tickers + [target_ticker]))
+                
+                # Only try to draw the table if there is more than 1 unique stock to compare
+                if len(analysis_tickers) > 1:
+                    corr_matrix = returns[analysis_tickers].corr()
+                    target_corrs = corr_matrix[target_ticker].drop(target_ticker)
+                    
+                    corr_df = pd.DataFrame(target_corrs).reset_index()
+                    corr_df.columns = ['Stock', 'Correlation']
+                    st.dataframe(corr_df.style.background_gradient(cmap='RdYlGn_r'), hide_index=True)
+                else:
+                    st.success(f"You currently only own {target_ticker}. Log more trades to build a correlation matrix!")
 
 # ==========================================
 # TAB 5: TRADE MANAGER

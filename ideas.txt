@@ -1,0 +1,5 @@
+This file is purely for my refrence.
+
+In the homepage, along with company name and number of shares owned, add %weight of each stock as well
+currently the monte carlo simulations tab is shit, make it better
+the correlation sandbox is very below par. I want it to generate the n*n matrix as well and how on earth is it making any calculation without asking for position sizing
