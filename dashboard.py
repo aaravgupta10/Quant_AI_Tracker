@@ -101,9 +101,7 @@ def get_live_prices_safely(tickers):
         return prices
         
     try:
-        # Download 5 days of data in ONE single batch call
         data = yf.download(tickers, period="5d")
-        
         if 'Close' in data:
             close_data = data['Close']
         else:
@@ -170,8 +168,6 @@ with tab1:
             with st.spinner("Calculating live capital weights..."):
                 holdings_data = []
                 total_equity = 0.0
-                
-                # Use the new safe fetcher
                 live_prices = get_live_prices_safely(current_tickers)
 
                 for ticker in current_tickers:
@@ -180,7 +176,7 @@ with tab1:
                     total_equity += val
                     holdings_data.append({"Ticker": ticker, "Shares": active_positions[ticker], "Value": val})
 
-                total_port_val = total_equity + cash_balance
+                total_port_val = total_equity  # Cash completely excluded
 
                 for row in holdings_data:
                     weight = (row["Value"] / total_port_val * 100) if total_port_val > 0 else 0
@@ -196,7 +192,6 @@ with tab1:
     with col_chart:
         if active_positions and 'holdings_data' in locals():
             st.markdown("**Holdings Distribution (By Capital)**")
-            
             valid_holdings = [row for row in holdings_data if row["Value"] > 0]
             if valid_holdings:
                 pie_labels = [row["Ticker"] for row in valid_holdings]
@@ -218,11 +213,11 @@ with tab2:
             live_prices = get_live_prices_safely(current_tickers)
             total_stock_value = sum(live_prices.get(t, 0.0) * active_positions[t] for t in current_tickers)
 
-            if total_stock_value == 0:
+            if total_stock_value <= 0:
                 st.error("Cannot calculate rebalance: Live market data currently unavailable.")
             else:
-                total_portfolio_value = total_stock_value + cash_balance
-                st.info(f"**Live Portfolio Value (Including Cash):** ₹{total_portfolio_value:,.2f}")
+                total_portfolio_value = total_stock_value  # Cash completely excluded
+                st.info(f"**Live Invested Equity:** ₹{total_portfolio_value:,.2f}")
                 
                 st.markdown("### Set Target Weights (%)")
                 targets = {}
@@ -232,7 +227,9 @@ with tab2:
                 for i, ticker in enumerate(current_tickers):
                     with cols[i % 4]:
                         current_weight = ((live_prices.get(ticker, 0.0) * active_positions[ticker]) / total_portfolio_value) * 100
-                        targets[ticker] = st.number_input(f"{ticker} (Current: {current_weight:.1f}%)", min_value=0.0, max_value=100.0, value=float(round(current_weight, 1)), step=1.0)
+                        # UI Armor to prevent StreamlitValueAboveMaxError
+                        safe_default = max(0.0, min(float(round(current_weight, 1)), 100.0))
+                        targets[ticker] = st.number_input(f"{ticker} (Current: {current_weight:.1f}%)", min_value=0.0, max_value=100.0, value=safe_default, step=1.0)
                         target_sum += targets[ticker]
                         
                 if target_sum > 100:
@@ -274,7 +271,6 @@ with tab3:
                     if len(current_tickers) == 1:
                         data = data.to_frame(name=current_tickers[0])
 
-                    # Safely drop any stocks that returned completely empty data
                     valid_data = data.dropna(axis=1, how='all')
                     valid_tickers = valid_data.columns.tolist()
 
@@ -291,7 +287,7 @@ with tab3:
 
                             mu = port_returns.mean()
                             sigma = port_returns.std()
-                            current_nav = total_equity + cash_balance
+                            current_nav = total_equity  # Cash completely excluded
 
                             days, simulations = 252, 500
                             sim_returns = np.random.normal(mu, sigma, (days, simulations))
@@ -305,7 +301,7 @@ with tab3:
                             for i in range(simulations):
                                 fig_mc.add_trace(go.Scatter(y=price_paths[:, i], mode='lines', line=dict(color='rgba(0,100,255,0.05)'), showlegend=False))
 
-                            fig_mc.update_layout(title="500 Simulated Portfolio Paths", xaxis_title="Trading Days", yaxis_title="Projected NAV (₹)", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+                            fig_mc.update_layout(title="500 Simulated Portfolio Paths", xaxis_title="Trading Days", yaxis_title="Projected Equity (₹)", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
                             st.plotly_chart(fig_mc, use_container_width=True)
 
                             final_navs = price_paths[-1]
@@ -320,7 +316,7 @@ with tab3:
                     st.error(f"Simulation failed to calculate: {e}")
 
 # ==========================================
-# TAB 4: CORRELATION SANDBOX (CAPITAL-WEIGHTED)
+# TAB 4: CORRELATION SANDBOX
 # ==========================================
 with tab4:
     st.subheader("Pre-Trade Risk Analysis")
@@ -339,7 +335,6 @@ with tab4:
                     all_tickers = list(dict.fromkeys(current_tickers + [target_ticker, "^NSEI"]))
                     data = yf.download(all_tickers, period="1y", interval="1d")['Close']
                     
-                    # Protect against completely missing data
                     valid_data = data.dropna(axis=1, how='all')
                     returns = valid_data.pct_change().dropna()
                     
