@@ -150,7 +150,8 @@ with tab1:
         m = metrics_data[-1] 
         col1, col2, col3, col4, col5 = st.columns(5)
         # Bypassing the static DB to show true live equity
-        col1.metric("Live Invested Equity", f"₹{live_equity:,.2f}") 
+        # Single Source of Truth: Lock to the Supabase Engine's EOD Calculation
+        col1.metric("Current Total NAV", f"₹{m['total_nav']:,.2f}") 
         col2.metric("Portfolio Alpha", f"{m.get('alpha', 0)*100:.2f}%") 
         col3.metric("Portfolio Beta", f"{m['portfolio_beta']:.2f}")
         col4.metric("Sharpe Ratio", f"{m['portfolio_sharpe']:.2f}")

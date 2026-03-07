@@ -6,7 +6,6 @@ from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# Unlock the vault
 load_dotenv()
 url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_KEY")
@@ -38,7 +37,6 @@ def build_time_machine(ledger_df):
     prices_df['date'] = pd.to_datetime(prices_df['date'])
     price_matrix = prices_df.pivot(index='date', columns='ticker', values='close_price')
     
-    # INSTITUTIONAL FIX 1: Forward Fill (Weekends) and Backward Fill (Initial listing delays)
     calendar = pd.date_range(start=start_date, end=end_date, freq='D')
     price_matrix = price_matrix.reindex(calendar).ffill().bfill()
     
@@ -49,6 +47,7 @@ def build_time_machine(ledger_df):
     
     for current_date in calendar:
         trades_today = ledger_df[ledger_df['date'] == current_date]
+        daily_stock_flow = 0.0 # Track money moving into stocks today
         
         for _, trade in trades_today.iterrows():
             action = trade['action']
@@ -67,29 +66,30 @@ def build_time_machine(ledger_df):
                 if action == 'BUY':
                     current_cash -= total_value
                     current_positions[ticker] += qty
+                    daily_stock_flow += total_value
                 elif action == 'SELL':
                     current_cash += total_value
                     current_positions[ticker] -= qty
+                    daily_stock_flow -= total_value
         
         stock_value_today = 0.0
         for ticker, qty in current_positions.items():
             if qty > 0:
                 try:
                     price_today = float(price_matrix.at[current_date, ticker])
-                    if pd.isna(price_today):
-                        price_today = 0.0
+                    if pd.isna(price_today): price_today = 0.0
                 except KeyError:
                     price_today = 0.0
                 if pd.notna(price_today):
                     stock_value_today += (qty * price_today)
         
-        # INSTITUTIONAL FIX 2: NAV is Strictly Invested Equity (No Cash)
         total_nav = stock_value_today
         
         daily_nav.append({
             'date': current_date.strftime('%Y-%m-%d'),
             'total_nav': round(total_nav, 2),
-            'net_invested': round(net_invested, 2)
+            'net_invested': round(net_invested, 2),
+            'stock_flow': round(daily_stock_flow, 2) # Inject flow tracking for Alpha math
         })
         
     return pd.DataFrame(daily_nav)
@@ -97,9 +97,7 @@ def build_time_machine(ledger_df):
 def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     print("Fetching Nifty 50 Benchmark for Risk Math...")
     
-    # INSTITUTIONAL FIX 3: Filter out days with zero equity to prevent infinite volatility math
     active_nav_df = nav_df[nav_df['total_nav'] > 0].copy()
-    
     if active_nav_df.empty or len(active_nav_df) < 2:
         return {"Max Drawdown": 0.0, "Beta": 0.0, "Sharpe Ratio": 0.0, "Alpha": 0.0}
 
@@ -116,7 +114,12 @@ def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     df = pd.merge(active_nav_df, bench_df, on='date', how='left')
     df['nifty_close'] = df['nifty_close'].ffill().bfill()
     
-    df['port_return'] = df['total_nav'].pct_change()
+    # INSTITUTIONAL FIX: True Time-Weighted Return (Strips cash deposits out of the return equation)
+    df['prev_nav'] = df['total_nav'].shift(1)
+    df['port_return'] = np.where(df['prev_nav'] > 0, 
+                                 (df['total_nav'] - df['prev_nav'] - df['stock_flow']) / df['prev_nav'], 
+                                 0.0)
+    
     df['bench_return'] = df['nifty_close'].pct_change()
     df = df.dropna()
     
@@ -174,10 +177,8 @@ if __name__ == "__main__":
             
             print("\nSaving metrics to the Supabase Vault...")
             
-            # Rebuild the full curve history in the database, not just today
             records_to_upsert = []
             for _, row in nav_history.iterrows():
-                # Only upload active days to avoid polluting the DB with 0s
                 if row['total_nav'] > 0:
                     records_to_upsert.append({
                         "date": row['date'],
@@ -185,10 +186,9 @@ if __name__ == "__main__":
                         "portfolio_beta": round(metrics['Beta'], 4),
                         "portfolio_sharpe": round(metrics['Sharpe Ratio'], 4),
                         "max_drawdown": round(metrics['Max Drawdown'], 4),
-                        "alpha": round(metrics['Alpha'], 4)  # <-- ALPHA SECURELY ADDED
+                        "alpha": round(metrics['Alpha'], 4) 
                     })
             
-            # Batch upload the cleaned historical curve
             for i in range(0, len(records_to_upsert), 500):
                 batch = records_to_upsert[i : i + 500]
                 supabase.table('portfolio_metrics').upsert(batch, on_conflict="date").execute()
