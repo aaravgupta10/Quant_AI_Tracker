@@ -130,12 +130,49 @@ with tab1:
     with col_table:
         st.markdown(f"**Available Cash:** ₹{cash_balance:,.2f}")
         if active_positions:
-            holdings_df = pd.DataFrame(list(active_positions.items()), columns=['Ticker', 'Shares'])
-            st.dataframe(holdings_df, hide_index=True, use_container_width=True)
+            with st.spinner("Calculating live capital weights..."):
+                try:
+                    # Fetch live prices
+                    live_data = yf.download(current_tickers, period="1d")['Close']
+                    
+                    holdings_data = []
+                    total_equity = 0.0
+                    
+                    # 1. Calculate the real Rupee value of each position
+                    for ticker in current_tickers:
+                        price = float(live_data[ticker].iloc[-1]) if len(current_tickers) > 1 else float(live_data.iloc[-1])
+                        val = price * active_positions[ticker]
+                        total_equity += val
+                        holdings_data.append({"Ticker": ticker, "Shares": active_positions[ticker], "Value": val})
+                        
+                    total_port_val = total_equity + cash_balance
+                    
+                    # 2. Calculate accurate Capital Weight percentages
+                    for row in holdings_data:
+                        weight = (row["Value"] / total_port_val) * 100
+                        row["% Weight"] = weight
+                        row["Display Weight"] = f"{weight:.2f}%"
+                        
+                    # 3. Format the table for the UI
+                    display_df = pd.DataFrame(holdings_data)[["Ticker", "Shares", "Display Weight"]]
+                    display_df.rename(columns={"Display Weight": "% Weight"}, inplace=True)
+                    st.dataframe(display_df, hide_index=True, use_container_width=True)
+                    
+                except Exception as e:
+                    st.error("Failed to fetch live weights.")
+                    st.dataframe(pd.DataFrame(list(active_positions.items()), columns=['Ticker', 'Shares']), hide_index=True)
+        else:
+            st.write("No active stock positions.")
+            
     with col_chart:
-        if active_positions:
-            st.markdown("**Holdings Distribution**")
-            fig = px.pie(values=list(active_positions.values()), names=list(active_positions.keys()), hole=0.4)
+        if active_positions and 'holdings_data' in locals():
+            st.markdown("**Holdings Distribution (By Capital)**")
+            
+            # Feed the True Capital Weights into the pie chart instead of raw share counts
+            pie_labels = [row["Ticker"] for row in holdings_data]
+            pie_values = [row["% Weight"] for row in holdings_data]
+            
+            fig = px.pie(values=pie_values, names=pie_labels, hole=0.4)
             st.plotly_chart(fig, use_container_width=True)
 
 # ==========================================
