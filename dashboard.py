@@ -5,7 +5,7 @@ import numpy as np
 import yfinance as yf
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
+from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client
 import warnings
@@ -24,16 +24,14 @@ def check_password():
     if st.session_state.get("password_correct", False): return True
     st.markdown("### 🔒 Vault Locked")
     st.text_input("Enter Institutional Master Key", type="password", on_change=password_entered, key="password")
-    if "password_correct" in st.session_state: st.error("Access Denied.")
+    if "password_correct" in st.session_state: st.error("Access Denied. Incorrect Key.")
     return False
 
 if "APP_PASSWORD" in st.secrets:
     if not check_password(): st.stop()
 
 load_dotenv()
-url = os.environ.get("SUPABASE_URL", st.secrets.get("SUPABASE_URL"))
-key = os.environ.get("SUPABASE_KEY", st.secrets.get("SUPABASE_KEY"))
-supabase: Client = create_client(url, key)
+supabase: Client = create_client(os.environ.get("SUPABASE_URL", st.secrets.get("SUPABASE_URL")), os.environ.get("SUPABASE_KEY", st.secrets.get("SUPABASE_KEY")))
 
 st.title("🏛️ Institutional Quant OS")
 st.markdown("Live Portfolio Analytics, Risk, & Forecasting")
@@ -47,7 +45,7 @@ def pull_vault_data():
 
 metrics_data, tx_data = pull_vault_data()
 
-# --- THE BUG FIX: STRICT EQUITY CAPITAL TRACKING ---
+# Strict Equity Tracking (Cash is Eradicated)
 positions = {}
 equity_net_invested = 0.0
 
@@ -55,7 +53,7 @@ if tx_data:
     df_tx = pd.DataFrame(tx_data)
     for _, row in df_tx.iterrows():
         ticker = row['ticker']
-        if ticker == 'CASH': continue # CASH IS DEAD
+        if ticker == 'CASH': continue 
         
         qty = float(row['quantity'])
         price = float(row['price'])
@@ -84,16 +82,15 @@ def get_live_prices_safely(tickers):
                 series = close_data[t].dropna() if isinstance(close_data, pd.DataFrame) and t in close_data.columns else close_data.dropna()
                 if not series.empty: prices[t] = float(series.iloc[-1])
             except: continue
-    except Exception: pass
+    except: pass
     return prices
 
 # LIVE P&L MATH
 live_prices = get_live_prices_safely(current_tickers)
 live_equity = sum([live_prices.get(t, 0.0) * active_positions[t] for t in current_tickers])
 
-# Now equity_net_invested is accurate, so P&L will finally display properly
 all_time_pnl = live_equity - equity_net_invested
-pnl_pct = (all_time_pnl / equity_net_invested * 100) if equity_net_invested > 0 else 0.0
+pnl_pct = (all_time_pnl / abs(equity_net_invested) * 100) if equity_net_invested != 0 else 0.0
 
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Portfolio Curve", "⚖️ Auto-Rebalancer", "🎲 Monte Carlo Risk", 
@@ -261,7 +258,6 @@ with tab4:
                             if len(analysis_tickers) > 1:
                                 corr_df = pd.DataFrame(returns[analysis_tickers].corr()[target_ticker].drop(target_ticker)).reset_index()
                                 corr_df.columns = ['Stock', 'Correlation']
-                                st.markdown(f"**How {target_ticker} correlates with your individual holdings:**")
                                 st.dataframe(corr_df.style.background_gradient(cmap='RdYlGn_r'), hide_index=True)
                             else: st.success(f"You only own {target_ticker}.")
                         else: st.error("Portfolio valuation failed.")
@@ -306,12 +302,10 @@ with tab6:
                 else:
                     col_fund, col_assump = st.columns(2)
                     with col_fund:
-                        st.markdown("### 🏛️ Base Fundamentals")
                         st.info(f"**Current Price:** ₹{current_price:,.2f}")
                         st.info(f"**Shares Outstanding:** {shares_out:,.0f}")
                         starting_fcf = st.number_input("Starting Free Cash Flow (₹)", value=float(fcf_api) if fcf_api else 10000000000.0)
                     with col_assump:
-                        st.markdown("### 🎚️ Your Assumptions")
                         growth_rate = st.slider("Expected Growth Rate (Y1-5)", 1.0, 50.0, 15.0, 0.5) / 100
                         discount_rate = st.slider("Discount Rate / WACC", 5.0, 25.0, 12.0, 0.5) / 100
                         terminal_growth = st.slider("Terminal Growth Rate (Y6+)", 1.0, 10.0, 4.0, 0.5) / 100

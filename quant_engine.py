@@ -5,11 +5,11 @@ import yfinance as yf
 from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client
+import warnings
 
+warnings.filterwarnings("ignore")
 load_dotenv()
-url = os.environ.get("SUPABASE_URL")
-key = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
+supabase: Client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
 
 def fetch_ledger():
     response = supabase.table('transactions').select("*").execute()
@@ -22,15 +22,9 @@ def fetch_ledger():
 def build_time_machine(ledger_df):
     start_date = ledger_df['date'].min().strftime('%Y-%m-%d')
     end_date = datetime.now().strftime('%Y-%m-%d')
-    
-    # Strictly Equities Only
     tickers_traded = ledger_df[ledger_df['ticker'] != 'CASH']['ticker'].unique().tolist()
     
-    market_response = supabase.table('market_data') \
-        .select('date, ticker, close_price') \
-        .gte('date', start_date) \
-        .in_('ticker', tickers_traded) \
-        .execute()
+    market_response = supabase.table('market_data').select('date, ticker, close_price').gte('date', start_date).in_('ticker', tickers_traded).execute()
         
     prices_df = pd.DataFrame(market_response.data)
     if prices_df.empty: return pd.DataFrame()
@@ -44,40 +38,36 @@ def build_time_machine(ledger_df):
     current_positions = {t: 0.0 for t in tickers_traded}
     fallback_prices = {t: 0.0 for t in tickers_traded} 
     
-    # INSTITUTIONAL UNITIZED MATH
+    # INSTITUTIONAL UNITIZED MATH (Mutual Fund Structure)
     unit_nav = 100.0  
     total_units = 0.0
     equity_net_invested = 0.0 
     
     for current_date in calendar:
-        # 1. Update Market Prices (Mark-to-Market Before Trades)
+        # Mark Market Prices
         for ticker in tickers_traded:
             try:
                 p = float(price_matrix.at[current_date, ticker])
                 if pd.notna(p) and p > 0: fallback_prices[ticker] = p
             except: pass
                 
-        # Calculate current organic value BEFORE new cash flows
+        # Calculate organic growth before new trades
         current_asset_value = sum(qty * fallback_prices.get(t, 0) for t, qty in current_positions.items())
         
-        # 2. Safely Update Unit NAV (The exact MF / ETF formula)
         if total_units > 0:
             unit_nav = current_asset_value / total_units
             
-        # 3. Process Trades (Capital Inflows/Outflows)
         trades_today = ledger_df[ledger_df['date'] == current_date]
         daily_net_cash_flow = 0.0
         
         for _, trade in trades_today.iterrows():
             ticker = trade['ticker']
-            if ticker == 'CASH': continue # CASH IS DEAD
+            if ticker == 'CASH': continue # Cash balance is eradicated
             
             action = trade['action']
             qty = float(trade['quantity'])
             price = float(trade['price'])
             trade_val = qty * price
-            
-            # Hardcode execution price so new stocks aren't valued at 0
             fallback_prices[ticker] = price 
             
             if action == 'BUY':
@@ -89,12 +79,11 @@ def build_time_machine(ledger_df):
                 equity_net_invested -= trade_val
                 daily_net_cash_flow -= trade_val
                 
-        # 4. Issue or Redeem Units at today's NAV
+        # Issue or Redeem Units at today's pure NAV
         if daily_net_cash_flow != 0:
-            if unit_nav <= 0: unit_nav = 100.0 # Rescue safety net
+            if unit_nav <= 0: unit_nav = 100.0 
             total_units += (daily_net_cash_flow / unit_nav)
             
-        # 5. Lock EOD Equity
         eod_asset_value = sum(qty * fallback_prices.get(t, 0) for t, qty in current_positions.items())
         
         daily_nav.append({
@@ -116,14 +105,11 @@ def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     start_date = active_nav_df['date'].min()
     end_date = active_nav_df['date'].max()
     
-    benchmark = yf.Ticker('^NSEI')
-    bench_hist = benchmark.history(start=start_date, end=pd.to_datetime(end_date) + pd.Timedelta(days=1))
-    
+    bench_hist = yf.Ticker('^NSEI').history(start=start_date, end=pd.to_datetime(end_date) + pd.Timedelta(days=1))
     bench_df = bench_hist[['Close']].reset_index()
     bench_df['Date'] = bench_df['Date'].dt.tz_localize(None).dt.strftime('%Y-%m-%d')
     bench_df.rename(columns={'Date': 'date', 'Close': 'nifty_close'}, inplace=True)
     
-    # Use 'inner' join to perfectly drop weekends and align market trading days
     df = pd.merge(active_nav_df, bench_df, on='date', how='inner')
     df['nifty_close'] = df['nifty_close'].ffill().bfill()
     
@@ -137,7 +123,6 @@ def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     cumulative_returns = (1 + df['port_return']).cumprod()
     peak = cumulative_returns.cummax()
     drawdown = (cumulative_returns - peak) / peak
-    max_drawdown = drawdown.min()
     
     cov_matrix = np.cov(df['port_return'], df['bench_return'])
     beta = cov_matrix[0, 1] / cov_matrix[1, 1] if cov_matrix[1, 1] != 0 else 0
@@ -151,7 +136,7 @@ def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     alpha = ann_port_return - (risk_free_rate + beta * (ann_bench_return - risk_free_rate))
     
     return {
-        "Max Drawdown": float(max_drawdown) if pd.notna(max_drawdown) else 0.0,
+        "Max Drawdown": float(drawdown.min()) if pd.notna(drawdown.min()) else 0.0,
         "Beta": float(beta) if pd.notna(beta) else 0.0,
         "Sharpe Ratio": float(sharpe_ratio) if pd.notna(sharpe_ratio) else 0.0,
         "Alpha": float(alpha) if pd.notna(alpha) else 0.0
@@ -163,16 +148,14 @@ if __name__ == "__main__":
     
     if ledger_df is not None and not ledger_df.empty:
         nav_history = build_time_machine(ledger_df)
-        
         if not nav_history.empty:
             metrics = calculate_risk_metrics(nav_history)
             
             current_nav = nav_history.iloc[-1]['total_nav']
             unit_nav = nav_history.iloc[-1]['unit_nav']
             net_invested = nav_history.iloc[-1]['net_invested']
-            
             all_time_pnl = current_nav - net_invested
-            pnl_percentage = (all_time_pnl / net_invested) * 100 if net_invested > 0 else 0
+            pnl_percentage = (all_time_pnl / abs(net_invested)) * 100 if net_invested != 0 else 0.0
 
             print("\n=== ABSOLUTE PERFORMANCE ===")
             print(f"Total Net Capital Invested : ₹{net_invested:,.2f}")
@@ -183,10 +166,6 @@ if __name__ == "__main__":
             print("\n=== RISK & ALPHA METRICS ===")
             print(f"Portfolio Alpha            : {metrics['Alpha'] * 100:.2f}%")
             print(f"Portfolio Beta             : {metrics['Beta']:.2f}")
-            print(f"Sharpe Ratio               : {metrics['Sharpe Ratio']:.2f}")
-            print(f"Maximum Drawdown           : {metrics['Max Drawdown'] * 100:.2f}%")
-            
-            print("\nSaving metrics to the Supabase Vault...")
             
             records_to_upsert = []
             for _, row in nav_history.iterrows():
@@ -202,7 +181,6 @@ if __name__ == "__main__":
                     })
             
             for i in range(0, len(records_to_upsert), 500):
-                batch = records_to_upsert[i : i + 500]
-                supabase.table('portfolio_metrics').upsert(batch, on_conflict="date").execute()
+                supabase.table('portfolio_metrics').upsert(records_to_upsert[i:i+500], on_conflict="date").execute()
                 
             print("\n--- ENGINE EXECUTION COMPLETE ---")
