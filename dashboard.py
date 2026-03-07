@@ -229,13 +229,13 @@ with tab3:
                 col_b.success(f"**Top 5% (Bull Run):** ₹{np.percentile(final_navs, 95):,.2f}")
 
 # ==========================================
-# TAB 4: CORRELATION SANDBOX
+# TAB 4: CORRELATION SANDBOX (CAPITAL-WEIGHTED)
 # ==========================================
 with tab4:
     st.subheader("Pre-Trade Risk Analysis")
     st.info("💡 **Note:** If you just want to check the stats for your current portfolio, enter a ticker of any stock already in your portfolio.")
     
-    target_ticker = st.text_input("Enter Target Ticker (e.g., ITC):").strip().upper()
+    target_ticker = st.text_input("Enter Target Ticker (e.g., ITC):", key="sandbox_tick").strip().upper()
     if target_ticker and not target_ticker.endswith('.NS') and target_ticker != "^NSEI":
         target_ticker = f"{target_ticker}.NS"
         
@@ -243,28 +243,50 @@ with tab4:
         if not current_tickers or not target_ticker:
             st.warning("Please enter a ticker and ensure portfolio has stocks.")
         else:
-            with st.spinner(f"Calculating matrix for {target_ticker}..."):
-                # Deduplicate the download list to prevent API errors
+            with st.spinner(f"Calculating capital-weighted matrix for {target_ticker}..."):
+                # Deduplicate the download list
                 all_tickers = list(dict.fromkeys(current_tickers + [target_ticker, "^NSEI"]))
                 data = yf.download(all_tickers, period="1y", interval="1d")['Close']
                 returns = data.pct_change().dropna()
                 
-                returns['Current_Portfolio'] = returns[current_tickers].mean(axis=1) if len(current_tickers) > 1 else returns[current_tickers[0]]
+                # --- INSTITUTIONAL UPGRADE: CAPITAL-WEIGHTED RETURNS ---
+                portfolio_value = 0.0
+                weights = {}
                 
-                col_macro, col_target = st.columns(2)
-                with col_macro: st.info(f"**Current Portfolio vs Nifty 50:** {returns['Current_Portfolio'].corr(returns['^NSEI']):.2f}")
-                with col_target: st.info(f"**{target_ticker} vs Current Portfolio:** {returns[target_ticker].corr(returns['Current_Portfolio']):.2f}")
+                # 1. Calculate live value of each position
+                for ticker in current_tickers:
+                    # data[ticker] is safe because all_tickers always has >= 2 items (target + index)
+                    latest_price = float(data[ticker].iloc[-1])
+                    position_value = latest_price * active_positions[ticker]
+                    weights[ticker] = position_value
+                    portfolio_value += position_value
+                
+                # 2. Convert raw values to percentage weights
+                for ticker in current_tickers:
+                    weights[ticker] = weights[ticker] / portfolio_value if portfolio_value > 0 else 0
+                
+                # 3. Calculate True Weighted Portfolio Return stream
+                returns['Current_Portfolio'] = 0.0
+                for ticker in current_tickers:
+                    returns['Current_Portfolio'] += returns[ticker] * weights[ticker]
+                # -------------------------------------------------------
 
-                # Deduplicate the matrix calculation to prevent length mismatch errors
+                col_macro, col_target = st.columns(2)
+                with col_macro: 
+                    st.info(f"**True Portfolio vs Nifty 50:** {returns['Current_Portfolio'].corr(returns['^NSEI']):.2f}")
+                with col_target: 
+                    st.info(f"**{target_ticker} vs True Portfolio:** {returns[target_ticker].corr(returns['Current_Portfolio']):.2f}")
+
+                # Deduplicate the matrix calculation to prevent length mismatch
                 analysis_tickers = list(dict.fromkeys(current_tickers + [target_ticker]))
                 
-                # Only try to draw the table if there is more than 1 unique stock to compare
                 if len(analysis_tickers) > 1:
                     corr_matrix = returns[analysis_tickers].corr()
                     target_corrs = corr_matrix[target_ticker].drop(target_ticker)
                     
                     corr_df = pd.DataFrame(target_corrs).reset_index()
                     corr_df.columns = ['Stock', 'Correlation']
+                    st.markdown(f"**How {target_ticker} correlates with your individual holdings:**")
                     st.dataframe(corr_df.style.background_gradient(cmap='RdYlGn_r'), hide_index=True)
                 else:
                     st.success(f"You currently only own {target_ticker}. Log more trades to build a correlation matrix!")
