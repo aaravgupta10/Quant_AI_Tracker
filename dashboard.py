@@ -233,37 +233,58 @@ with tab2:
 with tab3:
     st.subheader("Monte Carlo Path Simulation (1 Year)")
     if st.button("Run Simulation"):
-        if not current_tickers or not metrics_data:
-            st.warning("Ensure you have active stocks and metrics history.")
+        if not current_tickers:
+            st.warning("Ensure you have active stocks to run the simulation.")
         else:
-            with st.spinner("Crunching historical volatility..."):
-                df_metrics = pd.DataFrame(metrics_data)
-                df_metrics['returns'] = df_metrics['total_nav'].pct_change().dropna()
-                mu = df_metrics['returns'].mean()
-                sigma = df_metrics['returns'].std()
-                current_nav = float(df_metrics['total_nav'].iloc[-1])
-                
-                days, simulations = 252, 500
-                sim_returns = np.random.normal(mu, sigma, (days, simulations))
-                price_paths = np.zeros_like(sim_returns)
-                price_paths[0] = current_nav
-                
-                for t in range(1, days):
-                    price_paths[t] = price_paths[t-1] * (1 + sim_returns[t])
+            with st.spinner("Crunching synthetic historical volatility..."):
+                try:
+                    # 1. Fetch 1-year historical data for your current holdings
+                    data = yf.download(current_tickers, period="1y", interval="1d")['Close']
                     
-                fig_mc = go.Figure()
-                for i in range(simulations):
-                    fig_mc.add_trace(go.Scatter(y=price_paths[:, i], mode='lines', line=dict(color='rgba(0,100,255,0.05)'), showlegend=False))
-                
-                fig_mc.update_layout(title="500 Simulated Portfolio Paths", xaxis_title="Trading Days", yaxis_title="Projected NAV (₹)", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
-                st.plotly_chart(fig_mc, use_container_width=True)
-                
-                final_navs = price_paths[-1]
-                st.markdown("### Probability Matrix (End of Year)")
-                col_w, col_m, col_b = st.columns(3)
-                col_w.error(f"**Bottom 5% (Crash):** ₹{np.percentile(final_navs, 5):,.2f}")
-                col_m.info(f"**Median Expectation:** ₹{np.median(final_navs):,.2f}")
-                col_b.success(f"**Top 5% (Bull Run):** ₹{np.percentile(final_navs, 95):,.2f}")
+                    # Handle single ticker edge case safely
+                    if len(current_tickers) == 1:
+                        returns = data.pct_change().dropna().to_frame(name=current_tickers[0])
+                    else:
+                        returns = data.pct_change().dropna()
+                        
+                    # 2. Calculate true Capital Weights
+                    live_prices = {t: float(data[t].iloc[-1]) if len(current_tickers) > 1 else float(data.iloc[-1]) for t in current_tickers}
+                    total_equity = sum([live_prices[t] * active_positions[t] for t in current_tickers])
+                    weights = {t: (live_prices[t] * active_positions[t]) / total_equity for t in current_tickers}
+                    
+                    # 3. Calculate synthetic historical portfolio returns
+                    port_returns = sum([returns[t] * weights[t] for t in current_tickers])
+                    
+                    mu = port_returns.mean()
+                    sigma = port_returns.std()
+                    
+                    # Start the simulation from your TRUE current portfolio value (Equity + Cash)
+                    current_nav = total_equity + cash_balance
+                    
+                    days, simulations = 252, 500
+                    sim_returns = np.random.normal(mu, sigma, (days, simulations))
+                    price_paths = np.zeros_like(sim_returns)
+                    price_paths[0] = current_nav
+                    
+                    for t in range(1, days):
+                        price_paths[t] = price_paths[t-1] * (1 + sim_returns[t])
+                        
+                    fig_mc = go.Figure()
+                    for i in range(simulations):
+                        fig_mc.add_trace(go.Scatter(y=price_paths[:, i], mode='lines', line=dict(color='rgba(0,100,255,0.05)'), showlegend=False))
+                    
+                    fig_mc.update_layout(title="500 Simulated Portfolio Paths", xaxis_title="Trading Days", yaxis_title="Projected NAV (₹)", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+                    st.plotly_chart(fig_mc, use_container_width=True)
+                    
+                    final_navs = price_paths[-1]
+                    st.markdown("### Probability Matrix (End of Year)")
+                    col_w, col_m, col_b = st.columns(3)
+                    col_w.error(f"**Bottom 5% (Crash):** ₹{np.percentile(final_navs, 5):,.2f}")
+                    col_m.info(f"**Median Expectation:** ₹{np.median(final_navs):,.2f}")
+                    col_b.success(f"**Top 5% (Bull Run):** ₹{np.percentile(final_navs, 95):,.2f}")
+                    
+                except Exception as e:
+                    st.error(f"Simulation failed to calculate: {e}")
 
 # ==========================================
 # TAB 4: CORRELATION SANDBOX (CAPITAL-WEIGHTED)
