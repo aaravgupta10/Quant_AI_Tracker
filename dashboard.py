@@ -132,15 +132,19 @@ with tab1:
         if active_positions:
             with st.spinner("Calculating live capital weights..."):
                 try:
-                    # Fetch live prices
-                    live_data = yf.download(current_tickers, period="1d")['Close']
+                    # Fetch 5 days of data to survive weekends and holidays
+                    live_data = yf.download(current_tickers, period="5d")['Close']
                     
                     holdings_data = []
                     total_equity = 0.0
                     
                     # 1. Calculate the real Rupee value of each position
                     for ticker in current_tickers:
-                        price = float(live_data[ticker].iloc[-1]) if len(current_tickers) > 1 else float(live_data.iloc[-1])
+                        # Safely drop empty days and grab the last valid trading price
+                        if len(current_tickers) > 1:
+                            price = float(live_data[ticker].dropna().iloc[-1])
+                        else:
+                            price = float(live_data.dropna().iloc[-1])
                         val = price * active_positions[ticker]
                         total_equity += val
                         holdings_data.append({"Ticker": ticker, "Shares": active_positions[ticker], "Value": val})
