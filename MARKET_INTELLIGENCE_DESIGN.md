@@ -30,11 +30,14 @@ The pipeline captures, per stock:
   - % stocks above previous close
 - Unusual volume detection (`>= 2x` 20-day average)
 - Largest moves relative to historical volatility
+- FII / DII derivatives segment activity (Open Interest + Volume)
+- Daily PCR (Put-Call Ratio) for NIFTY and BANKNIFTY
 
 ## Generated Report Sections
 - Market Summary
 - Top Movers
 - Sector Performance
+- Derivatives Positioning (FII/DII OI, FII/DII volume, daily PCR)
 - Notable Activity
 - Key Observations (3-5 investor-focused insights)
 
@@ -82,3 +85,5 @@ Workflow artifacts:
   - centralized logging
   - email failure alerts
   - universe coverage thresholds
+
+

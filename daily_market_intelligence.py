@@ -19,7 +19,6 @@ REPORT_DIR = ROOT / "reports"
 META_PATH = DATA_DIR / "nifty500_metadata.csv"
 MASTER_PATH = DATA_DIR / "daily_snapshots.csv"
 
-
 DEFAULT_RECIPIENT = "aaravgupta1009@gmail.com"
 
 
@@ -222,9 +221,9 @@ def _markdown_table(df: pd.DataFrame, cols: list[str]) -> str:
         if pd.api.types.is_numeric_dtype(table[c]):
             if c in {"pct_change", "volatility_20d_pct"}:
                 table[c] = table[c].map(lambda x: _fmt_num(x, "pct"))
-            elif c in {"unusual_volume_ratio", "move_vs_vol"}:
+            elif c in {"unusual_volume_ratio", "move_vs_vol", "put_call_ratio"}:
                 table[c] = table[c].map(lambda x: _fmt_num(x, "ratio"))
-            elif c in {"market_cap", "volume", "avg_volume_20"}:
+            elif c in {"market_cap", "volume", "avg_volume_20", "long_value", "short_value", "net_value", "buy_value", "sell_value", "net_flow"}:
                 table[c] = table[c].map(lambda x: _fmt_num(x, "int"))
             else:
                 table[c] = table[c].map(lambda x: _fmt_num(x, "float"))
@@ -244,14 +243,136 @@ def _html_table(df: pd.DataFrame, cols: list[str]) -> str:
         if pd.api.types.is_numeric_dtype(table[c]):
             if c in {"pct_change", "volatility_20d_pct"}:
                 table[c] = table[c].map(lambda x: _fmt_num(x, "pct"))
-            elif c in {"unusual_volume_ratio", "move_vs_vol"}:
+            elif c in {"unusual_volume_ratio", "move_vs_vol", "put_call_ratio"}:
                 table[c] = table[c].map(lambda x: _fmt_num(x, "ratio"))
-            elif c in {"market_cap", "volume", "avg_volume_20"}:
+            elif c in {"market_cap", "volume", "avg_volume_20", "long_value", "short_value", "net_value", "buy_value", "sell_value", "net_flow"}:
                 table[c] = table[c].map(lambda x: _fmt_num(x, "int"))
             else:
                 table[c] = table[c].map(lambda x: _fmt_num(x, "float"))
 
     return table.to_html(index=False, border=0, classes="report-table", justify="left")
+
+
+def _nse_session() -> requests.Session:
+    session = requests.Session()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+    }
+    session.headers.update(headers)
+    try:
+        session.get("https://www.nseindia.com", timeout=20)
+    except Exception:
+        pass
+    return session
+
+
+def _fetch_participant_csv(session: requests.Session, kind: str, report_date: str) -> pd.DataFrame:
+    # kind: 'oi' or 'vol'
+    ddmmyyyy = pd.to_datetime(report_date).strftime("%d%m%Y")
+    candidates = [
+        f"https://archives.nseindia.com/content/nsccl/fao_participant_{kind}_{ddmmyyyy}.csv",
+        f"https://www.nseindia.com/content/nsccl/fao_participant_{kind}_{ddmmyyyy}.csv",
+    ]
+
+    for url in candidates:
+        try:
+            r = session.get(url, timeout=30)
+            if r.status_code == 200 and r.text and "," in r.text:
+                df = pd.read_csv(io.StringIO(r.text))
+                if not df.empty:
+                    df.columns = [str(c).strip() for c in df.columns]
+                    return df
+        except Exception:
+            continue
+    return pd.DataFrame()
+
+
+def _normalize_participant(df: pd.DataFrame, kind: str, report_date: str) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame(columns=["date", "client_type", "long_value", "short_value", "net_value", "buy_value", "sell_value", "net_flow", "source_kind"])
+
+    client_col = "Client Type" if "Client Type" in df.columns else (df.columns[0] if len(df.columns) else "client")
+    work = df.copy()
+    work[client_col] = work[client_col].astype(str).str.strip().str.upper()
+    work = work[work[client_col].isin(["FII", "DII"])].copy()
+
+    if work.empty:
+        return pd.DataFrame(columns=["date", "client_type", "long_value", "short_value", "net_value", "buy_value", "sell_value", "net_flow", "source_kind"])
+
+    numeric_cols = [c for c in work.columns if c != client_col]
+    for c in numeric_cols:
+        work[c] = pd.to_numeric(work[c], errors="coerce").fillna(0.0)
+
+    long_cols = [c for c in numeric_cols if "LONG" in c.upper()]
+    short_cols = [c for c in numeric_cols if "SHORT" in c.upper()]
+    buy_cols = [c for c in numeric_cols if "BUY" in c.upper()]
+    sell_cols = [c for c in numeric_cols if "SELL" in c.upper()]
+
+    out = pd.DataFrame()
+    out["date"] = [report_date] * work.shape[0]
+    out["client_type"] = work[client_col].values
+    out["source_kind"] = [kind] * work.shape[0]
+
+    out["long_value"] = work[long_cols].sum(axis=1) if long_cols else 0.0
+    out["short_value"] = work[short_cols].sum(axis=1) if short_cols else 0.0
+    out["net_value"] = out["long_value"] - out["short_value"]
+
+    out["buy_value"] = work[buy_cols].sum(axis=1) if buy_cols else 0.0
+    out["sell_value"] = work[sell_cols].sum(axis=1) if sell_cols else 0.0
+    out["net_flow"] = out["buy_value"] - out["sell_value"]
+
+    return out
+
+
+def fetch_derivatives_participant_data(report_date: str) -> dict:
+    session = _nse_session()
+
+    oi_raw = _fetch_participant_csv(session, "oi", report_date)
+    vol_raw = _fetch_participant_csv(session, "vol", report_date)
+
+    oi_df = _normalize_participant(oi_raw, "open_interest", report_date)
+    vol_df = _normalize_participant(vol_raw, "volume", report_date)
+
+    return {
+        "oi": oi_df,
+        "volume": vol_df,
+        "available": (not oi_df.empty) or (not vol_df.empty),
+    }
+
+
+def fetch_daily_pcr(report_date: str) -> pd.DataFrame:
+    session = _nse_session()
+    rows = []
+
+    for symbol in ["NIFTY", "BANKNIFTY"]:
+        url = f"https://www.nseindia.com/api/option-chain-indices?symbol={symbol}"
+        try:
+            r = session.get(url, timeout=30)
+            if r.status_code != 200:
+                continue
+            data = r.json() if r.text else {}
+
+            records = data.get("records", {})
+            ce_oi = float(records.get("totalCEOpenInterest", 0.0) or 0.0)
+            pe_oi = float(records.get("totalPEOpenInterest", 0.0) or 0.0)
+            pcr = (pe_oi / ce_oi) if ce_oi > 0 else np.nan
+
+            rows.append(
+                {
+                    "date": report_date,
+                    "symbol": symbol,
+                    "put_open_interest": pe_oi,
+                    "call_open_interest": ce_oi,
+                    "put_call_ratio": pcr,
+                }
+            )
+        except Exception:
+            continue
+
+    return pd.DataFrame(rows)
 
 
 def compute_sector_rotation(today_sector: pd.DataFrame, master: pd.DataFrame) -> pd.DataFrame:
@@ -286,14 +407,13 @@ def compute_sector_rotation(today_sector: pd.DataFrame, master: pd.DataFrame) ->
     return out
 
 
-def build_key_observations(df: pd.DataFrame, sector_rank: pd.DataFrame) -> list[str]:
+def build_key_observations(df: pd.DataFrame, sector_rank: pd.DataFrame, pcr_df: pd.DataFrame, deriv_oi: pd.DataFrame) -> list[str]:
     obs: list[str] = []
 
     adv = int((df["pct_change"] > 0).sum())
     dec = int((df["pct_change"] < 0).sum())
     avg_ret = float(df["pct_change"].mean()) if not df.empty else 0.0
     adv_dec_ratio = (adv / dec) if dec > 0 else float("inf")
-
     obs.append(f"Breadth closed at {adv}:{dec} (A/D {adv_dec_ratio:.2f}) with average stock return {avg_ret:.2f}%.")
 
     if not sector_rank.empty:
@@ -305,15 +425,22 @@ def build_key_observations(df: pd.DataFrame, sector_rank: pd.DataFrame) -> list[
     if not uv.empty:
         obs.append(f"{len(uv)} stocks traded above 2x 20-day average volume, signaling concentrated participation.")
 
-    move_vol = df.dropna(subset=["move_vs_vol"]).sort_values("move_vs_vol", ascending=False).head(3)
-    if not move_vol.empty:
-        names = ", ".join(move_vol["ticker"].tolist())
-        obs.append(f"Largest volatility-adjusted moves were in {names}.")
+    if not pcr_df.empty:
+        nifty = pcr_df[pcr_df["symbol"] == "NIFTY"]
+        if not nifty.empty and pd.notna(nifty.iloc[0]["put_call_ratio"]):
+            obs.append(f"NIFTY PCR closed at {nifty.iloc[0]['put_call_ratio']:.2f}, indicating derivatives sentiment balance.")
+
+    if not deriv_oi.empty:
+        fii = deriv_oi[deriv_oi["client_type"] == "FII"]
+        if not fii.empty:
+            net = float(fii.iloc[0]["net_value"])
+            side = "net long" if net > 0 else "net short"
+            obs.append(f"FII derivatives positioning was {side} ({abs(net):,.0f} contracts equivalent).")
 
     return obs[:5]
 
 
-def build_report_components(today_df: pd.DataFrame, master: pd.DataFrame) -> dict:
+def build_report_components(today_df: pd.DataFrame, master: pd.DataFrame, deriv_data: dict, pcr_df: pd.DataFrame) -> dict:
     valid = today_df.dropna(subset=["pct_change", "close"]).copy()
     if valid.empty:
         raise RuntimeError("No valid EOD data found to build report.")
@@ -346,7 +473,10 @@ def build_report_components(today_df: pd.DataFrame, master: pd.DataFrame) -> dic
     unusual_volume = valid[valid["unusual_volume_ratio"] >= 2.0].sort_values("unusual_volume_ratio", ascending=False).head(15)
     vol_adjusted_moves = valid.dropna(subset=["move_vs_vol"]).sort_values("move_vs_vol", ascending=False).head(15)
 
-    observations = build_key_observations(valid, sector_rank)
+    deriv_oi = deriv_data.get("oi", pd.DataFrame())
+    deriv_vol = deriv_data.get("volume", pd.DataFrame())
+
+    observations = build_key_observations(valid, sector_rank, pcr_df, deriv_oi)
 
     summary = {
         "date": report_date,
@@ -367,6 +497,9 @@ def build_report_components(today_df: pd.DataFrame, master: pd.DataFrame) -> dic
         "unusual_volume": unusual_volume,
         "vol_adjusted_moves": vol_adjusted_moves,
         "observations": observations,
+        "deriv_oi": deriv_oi,
+        "deriv_volume": deriv_vol,
+        "pcr": pcr_df,
     }
 
 
@@ -402,6 +535,17 @@ def generate_markdown_report(parts: dict) -> str:
 
     report.append("## Sector Rotation")
     report.append(_markdown_table(parts["rotation"].sort_values("momentum_delta", ascending=False), ["sector", "pct_change", "prior_5d_avg_return", "momentum_delta", "stocks"]))
+    report.append("")
+
+    report.append("## Derivatives Positioning")
+    report.append("### FII/DII Open Interest (Derivatives Segment)")
+    report.append(_markdown_table(parts["deriv_oi"], ["client_type", "long_value", "short_value", "net_value"]))
+    report.append("")
+    report.append("### FII/DII Trading Volume (Derivatives Segment)")
+    report.append(_markdown_table(parts["deriv_volume"], ["client_type", "buy_value", "sell_value", "net_flow"]))
+    report.append("")
+    report.append("### Daily Put-Call Ratio")
+    report.append(_markdown_table(parts["pcr"], ["symbol", "put_open_interest", "call_open_interest", "put_call_ratio"]))
     report.append("")
 
     report.append("## Notable Activity")
@@ -476,6 +620,16 @@ def generate_html_report(parts: dict) -> str:
     <h3>Sector Rotation (vs Prior 5-Day Avg)</h3>
     {_html_table(parts['rotation'].sort_values('momentum_delta', ascending=False), ['sector', 'pct_change', 'prior_5d_avg_return', 'momentum_delta', 'stocks'])}
 
+    <h2>Derivatives Positioning</h2>
+    <h3>FII/DII Open Interest (Derivatives Segment)</h3>
+    {_html_table(parts['deriv_oi'], ['client_type', 'long_value', 'short_value', 'net_value'])}
+
+    <h3>FII/DII Trading Volume (Derivatives Segment)</h3>
+    {_html_table(parts['deriv_volume'], ['client_type', 'buy_value', 'sell_value', 'net_flow'])}
+
+    <h3>Daily Put-Call Ratio</h3>
+    {_html_table(parts['pcr'], ['symbol', 'put_open_interest', 'call_open_interest', 'put_call_ratio'])}
+
     <h2>Notable Activity</h2>
     <h3>Unusual Volume (>=2x 20-day average)</h3>
     {_html_table(parts['unusual_volume'], ['ticker', 'sector', 'pct_change', 'volume', 'avg_volume_20', 'unusual_volume_ratio'])}
@@ -530,7 +684,11 @@ def run_pipeline(as_of: str | None = None, recipients_raw: str | None = None, se
     today_df = merge_dataset(constituents, metadata, ohlcv)
     master = update_master(today_df)
 
-    parts = build_report_components(today_df, master)
+    report_date = as_of if as_of else (today_df["date"].dropna().iloc[0] if not today_df.empty else datetime.now().strftime("%Y-%m-%d"))
+    derivatives = fetch_derivatives_participant_data(report_date)
+    pcr_df = fetch_daily_pcr(report_date)
+
+    parts = build_report_components(today_df, master, derivatives, pcr_df)
     report_md = generate_markdown_report(parts)
     report_html = generate_html_report(parts)
 
@@ -542,6 +700,15 @@ def run_pipeline(as_of: str | None = None, recipients_raw: str | None = None, se
     today_df.to_csv(snapshot_path, index=False)
     report_md_path.write_text(report_md, encoding="utf-8")
     report_html_path.write_text(report_html, encoding="utf-8")
+
+    # Persist derivatives snapshot used in this report.
+    if derivatives.get("available", False):
+        if not derivatives.get("oi", pd.DataFrame()).empty:
+            derivatives["oi"].to_csv(DATA_DIR / f"fii_dii_derivatives_oi_{report_date}.csv", index=False)
+        if not derivatives.get("volume", pd.DataFrame()).empty:
+            derivatives["volume"].to_csv(DATA_DIR / f"fii_dii_derivatives_volume_{report_date}.csv", index=False)
+    if not pcr_df.empty:
+        pcr_df.to_csv(DATA_DIR / f"daily_pcr_{report_date}.csv", index=False)
 
     email_status = "not attempted"
     recipients = parse_recipients(recipients_raw)
