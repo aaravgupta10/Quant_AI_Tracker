@@ -48,12 +48,14 @@ def build_time_machine(ledger_df):
         if not prices_df.empty:
             prices_df['date'] = pd.to_datetime(prices_df['date']).dt.tz_localize(None).dt.normalize()
             price_matrix = prices_df.pivot(index='date', columns='ticker', values='close_price')
+            # Forward-fill only to avoid lookahead from future prices.
             price_matrix = price_matrix.reindex(calendar).ffill()
 
     daily_nav = []
     current_positions = {t: 0.0 for t in tickers_traded}
 
-    # NAV rule: ignore cash balance completely; track only marked-to-market equity.
+    # Total NAV remains equity-only by user request.
+    # Unit NAV is flow-adjusted so contributions do not inflate performance.
     unit_nav = 100.0
     total_units = 0.0
     equity_net_invested = 0.0
@@ -70,6 +72,10 @@ def build_time_machine(ledger_df):
 
         trades_today = ledger_df[ledger_df['date'] == current_date]
 
+        stock_net_cash_flow = 0.0
+        external_cash_flow = 0.0
+        has_cash_tx = False
+
         for _, trade in trades_today.iterrows():
             ticker = trade['ticker']
             action = str(trade['action']).upper()
@@ -78,7 +84,12 @@ def build_time_machine(ledger_df):
             trade_val = qty * price
 
             if ticker == 'CASH':
-                # Explicitly ignored for NAV by user request.
+                # Use CASH rows as the source of external contributions/withdrawals.
+                has_cash_tx = True
+                if action in ('DEPOSIT', 'BUY'):
+                    external_cash_flow += trade_val
+                elif action in ('WITHDRAW', 'SELL'):
+                    external_cash_flow -= trade_val
                 continue
 
             fallback_prices[ticker] = price
@@ -86,16 +97,36 @@ def build_time_machine(ledger_df):
             if action == 'BUY':
                 current_positions[ticker] = current_positions.get(ticker, 0.0) + qty
                 equity_net_invested += trade_val
+                stock_net_cash_flow += trade_val
             elif action == 'SELL':
                 current_positions[ticker] = current_positions.get(ticker, 0.0) - qty
                 equity_net_invested -= trade_val
+                stock_net_cash_flow -= trade_val
+
+        # Backward compatibility: if ledger has no CASH rows, infer flow from stock cash flow.
+        if not has_cash_tx:
+            external_cash_flow = stock_net_cash_flow
 
         equity_value = sum(qty * fallback_prices.get(t, 0.0) for t, qty in current_positions.items())
 
-        # Keep unit NAV well-defined for risk metrics even when cash is ignored.
+        # Issue/redeem units at pre-flow NAV to neutralize contribution impact on unit NAV.
+        if external_cash_flow != 0:
+            if total_units > 0:
+                pre_flow_value = equity_value - external_cash_flow
+                flow_nav = pre_flow_value / total_units if pre_flow_value > 0 else unit_nav
+                if flow_nav <= 0:
+                    flow_nav = 100.0
+            else:
+                flow_nav = 100.0
+
+            total_units += (external_cash_flow / flow_nav)
+            if total_units < 0:
+                total_units = 0.0
+
         if total_units <= 0 and equity_value > 0:
             total_units = equity_value / 100.0
-        if total_units > 0:
+            unit_nav = 100.0
+        elif total_units > 0:
             unit_nav = equity_value / total_units
         else:
             unit_nav = 100.0

@@ -160,8 +160,20 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     st.subheader("Macro Risk & Performance")
     col1, col2, col3, col4, col5 = st.columns(5)
-    
-    col1.metric("Total Asset Value", f"₹{live_total_nav:,.2f}")
+
+    latest_unit_nav = None
+    if metrics_data:
+        try:
+            latest_unit_nav = float(metrics_data[-1].get('unit_nav') or 0.0)
+        except Exception:
+            latest_unit_nav = None
+
+    if latest_unit_nav and latest_unit_nav > 0:
+        unit_nav_delta = ((latest_unit_nav / 100.0) - 1.0) * 100.0
+        col1.metric("Unit NAV (Base 100)", f"₹{latest_unit_nav:,.4f}", f"{unit_nav_delta:.2f}%")
+    else:
+        col1.metric("Total Asset Value", f"₹{live_total_nav:,.2f}")
+
     col2.metric("All-Time Profit/Loss", f"₹{all_time_pnl:,.2f}", f"{pnl_pct:.2f}%")
 
     if fallback_tickers:
