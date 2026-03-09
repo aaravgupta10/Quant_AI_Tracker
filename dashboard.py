@@ -46,11 +46,9 @@ def pull_vault_data():
 
 metrics_data, tx_data = pull_vault_data()
 
-# Unified portfolio state (stocks + cash)
+# Unified portfolio state; NAV configured to ignore cash balance
 state = build_portfolio_state(pd.DataFrame(tx_data) if tx_data else pd.DataFrame())
 active_positions = state['active_positions']
-cash_balance = float(state['cash_balance'])
-net_external_invested = float(state['net_external_invested'])
 legacy_equity_net_invested = float(state['legacy_equity_net_invested'])
 
 current_tickers = list(active_positions.keys())
@@ -145,12 +143,12 @@ if missing_tickers:
 
 live_prices = market_prices
 live_equity = sum([live_prices.get(t, 0.0) * active_positions[t] for t in current_tickers])
-live_total_nav = live_equity + cash_balance
+live_total_nav = live_equity
 
 # Track which tickers required a Yahoo Finance fallback
 fallback_tickers = [t for t in missing_tickers if live_prices.get(t, 0.0) > 0]
 
-net_invested_for_pnl = net_external_invested if abs(net_external_invested) > 1e-9 else legacy_equity_net_invested
+net_invested_for_pnl = legacy_equity_net_invested
 all_time_pnl = live_total_nav - net_invested_for_pnl
 pnl_pct = (all_time_pnl / abs(net_invested_for_pnl) * 100) if net_invested_for_pnl != 0 else 0.0
 
@@ -170,7 +168,7 @@ with tab1:
         st.caption(f"Prices for {', '.join(fallback_tickers)} fetched via Yahoo Finance (fallback from Supabase market_data).")
     else:
         st.caption("Prices sourced from Supabase market_data.")
-    st.caption(f"Included cash balance: Rs{cash_balance:,.2f}")
+    st.caption("Cash balance is ignored in NAV by configuration.")
 
     if st.button("Refresh Supabase market_data now"):
         with st.spinner("Updating market_data from Yahoo Finance..."):
@@ -403,3 +401,4 @@ with tab6:
                         res_col2.metric("Calculated Intrinsic Value", f"₹{intrinsic_value:,.2f}")
                         res_col3.metric(f"Target Buy Price", f"₹{target_buy_price:,.2f}")
             except Exception as e: st.error(f"Failed to calculate DCF: {e}")
+

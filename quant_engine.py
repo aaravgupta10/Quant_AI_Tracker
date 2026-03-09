@@ -48,17 +48,15 @@ def build_time_machine(ledger_df):
         if not prices_df.empty:
             prices_df['date'] = pd.to_datetime(prices_df['date']).dt.tz_localize(None).dt.normalize()
             price_matrix = prices_df.pivot(index='date', columns='ticker', values='close_price')
-            # Do not backfill from future values; only carry known historical closes forward.
             price_matrix = price_matrix.reindex(calendar).ffill()
 
     daily_nav = []
     current_positions = {t: 0.0 for t in tickers_traded}
 
-    # MF-style unitization based only on external cash flows (CASH deposit/withdraw).
+    # NAV rule: ignore cash balance completely; track only marked-to-market equity.
     unit_nav = 100.0
     total_units = 0.0
-    cash_balance = 0.0
-    net_external_invested = 0.0
+    equity_net_invested = 0.0
 
     for current_date in calendar:
         if not price_matrix.empty:
@@ -71,7 +69,6 @@ def build_time_machine(ledger_df):
                     pass
 
         trades_today = ledger_df[ledger_df['date'] == current_date]
-        external_cash_flow = 0.0
 
         for _, trade in trades_today.iterrows():
             ticker = trade['ticker']
@@ -81,49 +78,33 @@ def build_time_machine(ledger_df):
             trade_val = qty * price
 
             if ticker == 'CASH':
-                if action in ('DEPOSIT', 'BUY'):
-                    cash_balance += trade_val
-                    external_cash_flow += trade_val
-                    net_external_invested += trade_val
-                elif action in ('WITHDRAW', 'SELL'):
-                    cash_balance -= trade_val
-                    external_cash_flow -= trade_val
-                    net_external_invested -= trade_val
+                # Explicitly ignored for NAV by user request.
                 continue
 
-            # Use trade price as same-day fallback if market close is missing.
             fallback_prices[ticker] = price
 
             if action == 'BUY':
                 current_positions[ticker] = current_positions.get(ticker, 0.0) + qty
-                cash_balance -= trade_val
+                equity_net_invested += trade_val
             elif action == 'SELL':
                 current_positions[ticker] = current_positions.get(ticker, 0.0) - qty
-                cash_balance += trade_val
+                equity_net_invested -= trade_val
 
         equity_value = sum(qty * fallback_prices.get(t, 0.0) for t, qty in current_positions.items())
-        eod_asset_value = equity_value + cash_balance
 
-        # Units only change for external capital flows.
-        if external_cash_flow != 0:
-            if total_units > 0:
-                pre_flow_nav = (eod_asset_value - external_cash_flow) / total_units
-                if pre_flow_nav <= 0:
-                    pre_flow_nav = 100.0
-            else:
-                pre_flow_nav = 100.0
-            total_units += (external_cash_flow / pre_flow_nav)
-
+        # Keep unit NAV well-defined for risk metrics even when cash is ignored.
+        if total_units <= 0 and equity_value > 0:
+            total_units = equity_value / 100.0
         if total_units > 0:
-            unit_nav = eod_asset_value / total_units
+            unit_nav = equity_value / total_units
         else:
             unit_nav = 100.0
 
         daily_nav.append({
             'date': current_date.strftime('%Y-%m-%d'),
-            'total_nav': round(eod_asset_value, 2),
+            'total_nav': round(equity_value, 2),
             'unit_nav': round(unit_nav, 4),
-            'net_invested': round(net_external_invested, 2)
+            'net_invested': round(equity_net_invested, 2)
         })
 
     return pd.DataFrame(daily_nav)
@@ -147,7 +128,6 @@ def calculate_risk_metrics(nav_df, risk_free_rate=0.07):
     df = pd.merge(active_nav_df, bench_df, on='date', how='inner')
     df['nifty_close'] = df['nifty_close'].ffill().bfill()
 
-    # Returns are based on unit NAV, independent of cash contributions/withdrawals.
     df['port_return'] = df['unit_nav'].pct_change()
     df['bench_return'] = df['nifty_close'].pct_change()
     df = df.dropna()
