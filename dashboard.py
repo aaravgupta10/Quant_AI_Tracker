@@ -155,7 +155,8 @@ if metrics_data:
     except Exception:
         engine_total_nav = None
 
-pnl_nav_base = engine_total_nav if engine_total_nav is not None and engine_total_nav > 0 else live_total_nav
+pnl_nav_base = engine_total_nav if engine_total_nav is not None else live_total_nav
+pnl_source = "quant_engine snapshot" if engine_total_nav is not None else "live fallback"
 all_time_pnl = pnl_nav_base - open_cost_basis
 pnl_pct = (all_time_pnl / abs(open_cost_basis) * 100) if open_cost_basis != 0 else 0.0
 
