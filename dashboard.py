@@ -49,7 +49,7 @@ metrics_data, tx_data = pull_vault_data()
 # Unified portfolio state; NAV configured to ignore cash balance
 state = build_portfolio_state(pd.DataFrame(tx_data) if tx_data else pd.DataFrame())
 active_positions = state['active_positions']
-legacy_equity_net_invested = float(state['legacy_equity_net_invested'])
+open_cost_basis = float(state.get('open_cost_basis_total', 0.0))
 
 current_tickers = list(active_positions.keys())
 
@@ -148,9 +148,16 @@ live_total_nav = live_equity
 # Track which tickers required a Yahoo Finance fallback
 fallback_tickers = [t for t in missing_tickers if live_prices.get(t, 0.0) > 0]
 
-net_invested_for_pnl = legacy_equity_net_invested
-all_time_pnl = live_total_nav - net_invested_for_pnl
-pnl_pct = (all_time_pnl / abs(net_invested_for_pnl) * 100) if net_invested_for_pnl != 0 else 0.0
+engine_total_nav = None
+if metrics_data:
+    try:
+        engine_total_nav = float(metrics_data[-1].get('total_nav') or 0.0)
+    except Exception:
+        engine_total_nav = None
+
+pnl_nav_base = engine_total_nav if engine_total_nav is not None and engine_total_nav > 0 else live_total_nav
+all_time_pnl = pnl_nav_base - open_cost_basis
+pnl_pct = (all_time_pnl / abs(open_cost_basis) * 100) if open_cost_basis != 0 else 0.0
 
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Portfolio Curve", "⚖️ Auto-Rebalancer", "🎲 Monte Carlo Risk", 
@@ -174,13 +181,15 @@ with tab1:
     else:
         col1.metric("Total Asset Value", f"₹{live_total_nav:,.2f}")
 
-    col2.metric("All-Time Profit/Loss", f"₹{all_time_pnl:,.2f}", f"{pnl_pct:.2f}%")
+    col2.metric("All-Time Unrealised P/L", f"₹{all_time_pnl:,.2f}", f"{pnl_pct:.2f}%")
 
     if fallback_tickers:
         st.caption(f"Prices for {', '.join(fallback_tickers)} fetched via Yahoo Finance (fallback from Supabase market_data).")
     else:
         st.caption("Prices sourced from Supabase market_data.")
     st.caption("Cash balance is ignored in NAV by configuration.")
+    if engine_total_nav is not None:
+        st.caption("Unrealised P/L uses latest quant_engine NAV snapshot from portfolio_metrics.")
 
     if st.button("Refresh Supabase market_data now"):
         with st.spinner("Updating market_data from Yahoo Finance..."):

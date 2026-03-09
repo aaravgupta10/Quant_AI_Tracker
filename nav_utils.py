@@ -19,13 +19,19 @@ def normalize_ledger_dates(df: pd.DataFrame) -> pd.DataFrame:
 def build_portfolio_state(df_tx: pd.DataFrame) -> dict:
     """
     Build a consistent portfolio state from transactions.
-    - Stock BUY/SELL moves between cash and equity.
-    - CASH DEPOSIT/WITHDRAW (or BUY/SELL on CASH) are external flows.
+
+    Includes:
+    - current positions
+    - open position cost basis (average-cost method)
+    - legacy equity net invested
+    - cash/external flow tracking (kept for compatibility)
     """
     if df_tx is None or df_tx.empty:
         return {
             "positions": {},
             "active_positions": {},
+            "position_cost_basis": {},
+            "open_cost_basis_total": 0.0,
             "cash_balance": 0.0,
             "net_external_invested": 0.0,
             "legacy_equity_net_invested": 0.0,
@@ -33,6 +39,7 @@ def build_portfolio_state(df_tx: pd.DataFrame) -> dict:
 
     df = normalize_ledger_dates(df_tx)
     positions = {}
+    position_cost_basis = {}
     cash_balance = 0.0
     net_external_invested = 0.0
     legacy_equity_net_invested = 0.0
@@ -40,7 +47,7 @@ def build_portfolio_state(df_tx: pd.DataFrame) -> dict:
     for _, row in df.iterrows():
         ticker = str(row.get("ticker", "")).upper().strip()
         action = str(row.get("action", "")).upper().strip()
-        qty = float(row.get("quantity") or 0.0)
+        qty = abs(float(row.get("quantity") or 0.0))
         price = float(row.get("price") or 0.0)
         trade_val = qty * price
 
@@ -53,20 +60,47 @@ def build_portfolio_state(df_tx: pd.DataFrame) -> dict:
                 net_external_invested -= trade_val
             continue
 
+        cur_qty = positions.get(ticker, 0.0)
+        cur_cost = position_cost_basis.get(ticker, 0.0)
+
         if action == "BUY":
-            positions[ticker] = positions.get(ticker, 0.0) + qty
+            positions[ticker] = cur_qty + qty
+            position_cost_basis[ticker] = cur_cost + trade_val
             cash_balance -= trade_val
             legacy_equity_net_invested += trade_val
+
         elif action == "SELL":
-            positions[ticker] = positions.get(ticker, 0.0) - qty
+            sell_qty = min(qty, max(cur_qty, 0.0))
+            avg_cost = (cur_cost / cur_qty) if cur_qty > 0 else 0.0
+            reduced_cost = avg_cost * sell_qty
+
+            new_qty = cur_qty - sell_qty
+            new_cost = max(cur_cost - reduced_cost, 0.0)
+
+            if new_qty <= 1e-9:
+                positions[ticker] = 0.0
+                position_cost_basis[ticker] = 0.0
+            else:
+                positions[ticker] = new_qty
+                position_cost_basis[ticker] = new_cost
+
             cash_balance += trade_val
             legacy_equity_net_invested -= trade_val
 
     active_positions = {t: q for t, q in positions.items() if q > 0}
+    active_cost_basis = {
+        t: float(position_cost_basis.get(t, 0.0))
+        for t, q in active_positions.items()
+        if q > 0
+    }
+
     return {
         "positions": positions,
         "active_positions": active_positions,
+        "position_cost_basis": active_cost_basis,
+        "open_cost_basis_total": float(sum(active_cost_basis.values())),
         "cash_balance": cash_balance,
         "net_external_invested": net_external_invested,
         "legacy_equity_net_invested": legacy_equity_net_invested,
     }
+

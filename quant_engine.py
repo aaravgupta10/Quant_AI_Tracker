@@ -6,7 +6,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client
 import warnings
-from nav_utils import normalize_ledger_dates
+from nav_utils import normalize_ledger_dates, build_portfolio_state
 
 warnings.filterwarnings("ignore")
 load_dotenv()
@@ -28,7 +28,7 @@ def build_time_machine(ledger_df):
     start_date = ledger_df['date'].min().strftime('%Y-%m-%d')
     end_date = datetime.now().strftime('%Y-%m-%d')
 
-    stock_ledger = ledger_df[(ledger_df['ticker'] != 'CASH') & (ledger_df['action'].isin(['BUY', 'SELL']))]
+    stock_ledger = ledger_df[(ledger_df['ticker'].astype(str).str.upper() != 'CASH') & (ledger_df['action'].astype(str).str.upper().isin(['BUY', 'SELL']))]
     tickers_traded = stock_ledger['ticker'].unique().tolist()
 
     calendar = pd.date_range(start=start_date, end=end_date, freq='D')
@@ -77,9 +77,9 @@ def build_time_machine(ledger_df):
         has_cash_tx = False
 
         for _, trade in trades_today.iterrows():
-            ticker = trade['ticker']
+            ticker = str(trade['ticker']).upper().strip()
             action = str(trade['action']).upper()
-            qty = float(trade['quantity'])
+            qty = abs(float(trade['quantity']))
             price = float(trade['price'])
             trade_val = qty * price
 
@@ -200,15 +200,16 @@ if __name__ == "__main__":
 
             current_nav = nav_history.iloc[-1]['total_nav']
             unit_nav = nav_history.iloc[-1]['unit_nav']
-            net_invested = nav_history.iloc[-1]['net_invested']
-            all_time_pnl = current_nav - net_invested
-            pnl_percentage = (all_time_pnl / abs(net_invested)) * 100 if net_invested != 0 else 0.0
+            state = build_portfolio_state(ledger_df)
+            open_cost_basis = float(state.get('open_cost_basis_total', 0.0))
+            all_time_pnl = current_nav - open_cost_basis
+            pnl_percentage = (all_time_pnl / abs(open_cost_basis)) * 100 if open_cost_basis != 0 else 0.0
 
             print("\n=== ABSOLUTE PERFORMANCE ===")
-            print(f"Total Net Capital Invested : Rs{net_invested:,.2f}")
+            print(f"Open Position Cost Basis    : Rs{open_cost_basis:,.2f}")
             print(f"Total Asset Value          : Rs{current_nav:,.2f}")
             print(f"Mutual Fund Unit NAV       : Rs{unit_nav:,.4f}")
-            print(f"All-Time Profit/Loss       : Rs{all_time_pnl:,.2f} ({pnl_percentage:.2f}%)")
+            print(f"All-Time Unrealised P/L    : Rs{all_time_pnl:,.2f} ({pnl_percentage:.2f}%)")
 
             print("\n=== RISK & ALPHA METRICS ===")
             print(f"Portfolio Alpha            : {metrics['Alpha'] * 100:.2f}%")
@@ -230,3 +231,4 @@ if __name__ == "__main__":
                 supabase.table('portfolio_metrics').upsert(records_to_upsert[i:i+500], on_conflict="date").execute()
 
             print("\n--- ENGINE EXECUTION COMPLETE ---")
+
