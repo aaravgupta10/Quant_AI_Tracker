@@ -364,10 +364,50 @@ with tab4:
                             col_macro, col_target = st.columns(2)
                             col_macro.info(f"**True Portfolio vs Nifty 50:** {returns['Current_Portfolio'].corr(returns['^NSEI']):.2f}")
                             col_target.info(f"**{target_ticker} vs True Portfolio:** {returns[target_ticker].corr(returns['Current_Portfolio']):.2f}")
+
+                            st.divider()
+                            st.markdown("### Portfolio Fit Diagnostics")
+                            target_corr = returns[target_ticker].corr(returns['Current_Portfolio'])
+                            
+                            # Marginal Volatility Simulation
+                            sim_weights = {k: v * 0.9 for k, v in weights.items()}
+                            sim_weights[target_ticker] = sim_weights.get(target_ticker, 0.0) + 0.10
+                            
+                            sim_df = pd.DataFrame()
+                            for t in sim_weights.keys():
+                                sim_df[t] = returns[t] * sim_weights[t]
+                                
+                            sim_port_returns = sim_df.sum(axis=1)
+                            sim_vol = float(sim_port_returns.std()) * np.sqrt(252)
+                            current_vol = float(returns['Current_Portfolio'].std()) * np.sqrt(252)
+                            
+                            vol_impact = sim_vol - current_vol
+                            fit_score = 100
+                            
+                            if target_corr > 0.7:
+                                fit_score -= 40
+                                st.error(f"⚠️ **High Overlap**: {target_ticker} has a highly positive correlation of {target_corr:.2f} with your current holdings. Buying this adds concentrated, redundant risk.")
+                            elif target_corr < 0.3:
+                                st.success(f"🛡️ **Heavy Diversifier**: {target_ticker} has low/negative correlation to your portfolio ({target_corr:.2f}), offering a structural hedge.")
+                            else:
+                                fit_score -= 10
+                                st.info(f"⚖️ **Neutral Correlation Fit**: Moderate correlation ({target_corr:.2f}).")
+                                
+                            if vol_impact > 0:
+                                fit_score -= 30
+                                st.warning(f"📈 **Increases Variance**: Allocating 10% to {target_ticker} increases your portfolio's annualized volatility by {(vol_impact)*100:.2f}%.")
+                            else:
+                                st.success(f"📉 **Reduces Variance**: Allocating 10% to {target_ticker} successfully lowers overall portfolio volatility by {abs(vol_impact)*100:.2f}%.")
+                                
+                            st.metric("Structural Fit Score (Out of 100)", f"{max(0, min(100, fit_score))}")
+                            
+                            st.divider()
+                            
                             analysis_tickers = list(dict.fromkeys([t for t in current_tickers if t in returns.columns] + [target_ticker]))
                             if len(analysis_tickers) > 1:
                                 corr_df = pd.DataFrame(returns[analysis_tickers].corr()[target_ticker].drop(target_ticker)).reset_index()
                                 corr_df.columns = ['Stock', 'Correlation']
+                                st.markdown(f"**Cross-Asset Correlaton matrix for {target_ticker}**")
                                 st.dataframe(corr_df.style.background_gradient(cmap='RdYlGn_r'), hide_index=True)
                             else: st.success(f"You only own {target_ticker}.")
                         else: st.error("Portfolio valuation failed.")
