@@ -40,6 +40,7 @@ def build_portfolio_state(df_tx: pd.DataFrame) -> dict:
     df = normalize_ledger_dates(df_tx)
     positions = {}
     position_cost_basis = {}
+    strategy_tags = {}
     cash_balance = 0.0
     net_external_invested = 0.0
     legacy_equity_net_invested = 0.0
@@ -66,6 +67,13 @@ def build_portfolio_state(df_tx: pd.DataFrame) -> dict:
         if action == "BUY":
             positions[ticker] = cur_qty + qty
             position_cost_basis[ticker] = cur_cost + trade_val
+            
+            stag = str(row.get("strategy_tag") or "").strip()
+            if stag and stag != "nan":
+                strategy_tags[ticker] = stag
+            elif ticker not in strategy_tags:
+                strategy_tags[ticker] = "Core"
+                
             cash_balance -= trade_val
             legacy_equity_net_invested += trade_val
 
@@ -93,11 +101,16 @@ def build_portfolio_state(df_tx: pd.DataFrame) -> dict:
         for t, q in active_positions.items()
         if q > 0
     }
+    active_strategies = {
+        t: strategy_tags.get(t, "Core")
+        for t in active_positions
+    }
 
     return {
         "positions": positions,
         "active_positions": active_positions,
         "position_cost_basis": active_cost_basis,
+        "active_strategies": active_strategies,
         "open_cost_basis_total": float(sum(active_cost_basis.values())),
         "cash_balance": cash_balance,
         "net_external_invested": net_external_invested,

@@ -9,7 +9,7 @@ url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
-def log_trade(ticker, action, quantity, price, trade_date):
+def log_trade(ticker, action, quantity, price, trade_date, conviction=3, strategy="Core"):
     action = action.upper()
     ticker = ticker.upper()
     
@@ -17,16 +17,21 @@ def log_trade(ticker, action, quantity, price, trade_date):
     if ticker != 'CASH' and not ticker.endswith('.NS'):
         ticker = f"{ticker}.NS"
         
-    print(f"\nSending to vault: {action} {quantity} of {ticker} at ₹{price} on {trade_date}...")
+    print(f"\nSending to vault: {action} {quantity} of {ticker} at ₹{price} on {trade_date} (Strategy: {strategy}, Conviction: {conviction})...")
     
     try:
-        response = supabase.table('transactions').insert({
+        payload = {
             "date": trade_date,
             "ticker": ticker,
             "action": action,
             "quantity": float(quantity),
             "price": float(price)
-        }).execute()
+        }
+        if ticker != 'CASH' and action in ('BUY', 'SELL'):
+            payload["conviction_score"] = int(conviction)
+            payload["strategy_tag"] = str(strategy)
+            
+        response = supabase.table('transactions').insert(payload).execute()
         print("[✓] Trade successfully secured in the ledger!")
     except Exception as e:
         print(f"[X] Failed to log trade: {e}")
@@ -68,9 +73,22 @@ if __name__ == "__main__":
             except ValueError:
                 print("Invalid date format. Must be YYYY-MM-DD. Let's start over.\n")
                 continue
+        
+        # Thesis Tracking
+        conv_val = 3
+        strat_val = "Core"
+        if ticker != 'CASH':
+            c_input = input("Conviction Score (1-5) [Press Enter for 3]: ").strip()
+            try:
+                conv_val = int(c_input) if c_input else 3
+            except ValueError:
+                conv_val = 3
+            
+            s_input = input("Strategy Tag (e.g., Value, Momentum, Hedge) [Press Enter for Core]: ").strip()
+            strat_val = s_input if s_input else "Core"
             
         # Confirm and log
-        log_trade(ticker, action, quantity, price, trade_date)
+        log_trade(ticker, action, quantity, price, trade_date, conv_val, strat_val)
         
         # Ask if there are more trades
         another = input("\nLog another trade? (y/n): ").strip().lower()

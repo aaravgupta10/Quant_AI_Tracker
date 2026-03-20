@@ -160,9 +160,9 @@ pnl_source = "quant_engine snapshot" if engine_total_nav is not None else "live 
 all_time_pnl = pnl_nav_base - open_cost_basis
 pnl_pct = (all_time_pnl / abs(open_cost_basis) * 100) if open_cost_basis != 0 else 0.0
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📊 Portfolio Curve", "⚖️ Auto-Rebalancer", "🎲 Monte Carlo Risk", 
-    "🧪 Correlation Sandbox", "📝 Trade Manager", "🔮 DCF Valuation"
+    "🧪 Correlation Sandbox", "📝 Trade Manager", "🔮 DCF Valuation", "📈 AI Optimizer"
 ])
 
 with tab1:
@@ -263,6 +263,20 @@ with tab1:
                 pie_values = [row["% Weight"] for row in valid_holdings]
                 fig = px.pie(values=pie_values, names=pie_labels, hole=0.4)
                 st.plotly_chart(fig, use_container_width=True)
+                
+            st.markdown("**Strategy Allocation**")
+            strat_data = []
+            for ticker in current_tickers:
+                price = live_prices.get(ticker, 0.0)
+                val = price * active_positions[ticker]
+                strat = state.get('active_strategies', {}).get(ticker, "Core")
+                strat_data.append({"Strategy": strat, "Value": val})
+            if strat_data:
+                df_strat = pd.DataFrame(strat_data).groupby("Strategy", as_index=False).sum()
+                df_strat = df_strat[df_strat["Value"] > 0]
+                if not df_strat.empty:
+                    fig_strat = px.pie(values=df_strat["Value"], names=df_strat["Strategy"], hole=0.4)
+                    st.plotly_chart(fig_strat, use_container_width=True)
 
 with tab2:
     st.subheader("Automated Rebalancing Engine")
@@ -422,4 +436,68 @@ with tab6:
                         res_col2.metric("Calculated Intrinsic Value", f"₹{intrinsic_value:,.2f}")
                         res_col3.metric(f"Target Buy Price", f"₹{target_buy_price:,.2f}")
             except Exception as e: st.error(f"Failed to calculate DCF: {e}")
+
+with tab7:
+    st.subheader("Efficient Frontier Portfolio Optimizer (Markowitz)")
+    st.markdown("Calculates the optimal asset allocation to maximize Sharpe Ratio based on historical covariance.")
+    
+    if st.button("Run Mean-Variance Optimization"):
+        if len(current_tickers) < 2:
+            st.warning("You need at least 2 active stock positions to run optimization.")
+        else:
+            with st.spinner("Calculating covariance matrix and optimizing weights..."):
+                try:
+                    from scipy.optimize import minimize
+                    data = yf.download(current_tickers, period="1y", interval="1d")['Close']
+                    if len(current_tickers) == 1: data = data.to_frame(name=current_tickers[0])
+                    returns = data.dropna(axis=1, how='all').pct_change().dropna()
+                    valid_opt_tickers = returns.columns.tolist()
+                    if len(valid_opt_tickers) < 2: st.error("Not enough historical data for optimization.")
+                    else:
+                        mean_returns = returns.mean() * 252
+                        cov_matrix = returns.cov() * 252
+                        num_assets = len(valid_opt_tickers)
+                        risk_free_rate = 0.07
+                        
+                        def portfolio_performance(weights, mean_returns, cov_matrix):
+                            returns = np.sum(mean_returns * weights)
+                            std = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+                            return returns, std
+                            
+                        def negative_sharpe(weights, mean_returns, cov_matrix, risk_free_rate):
+                            p_ret, p_std = portfolio_performance(weights, mean_returns, cov_matrix)
+                            return -(p_ret - risk_free_rate) / p_std
+                            
+                        constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+                        bounds = tuple((0.0, 1.0) for asset in range(num_assets))
+                        init_guess = num_assets * [1. / num_assets]
+                        
+                        opt_result = minimize(negative_sharpe, init_guess, args=(mean_returns, cov_matrix, risk_free_rate), method='SLSQP', bounds=bounds, constraints=constraints)
+                        if opt_result.success:
+                            opt_weights = opt_result.x
+                            opt_ret, opt_std = portfolio_performance(opt_weights, mean_returns, cov_matrix)
+                            opt_sharpe = (opt_ret - risk_free_rate) / opt_std
+                            
+                            curr_weights_arr = np.array([(live_prices.get(t, 0.0) * active_positions.get(t, 0.0)) / live_equity for t in valid_opt_tickers])
+                            curr_weights_arr = curr_weights_arr / np.sum(curr_weights_arr)
+                            curr_ret, curr_std = portfolio_performance(curr_weights_arr, mean_returns, cov_matrix)
+                            curr_sharpe = (curr_ret - risk_free_rate) / curr_std
+                            
+                            st.divider()
+                            c1, c2, c3 = st.columns(3)
+                            c1.metric("Current Sharpe / Optimal", f"{curr_sharpe:.2f}", f"{opt_sharpe - curr_sharpe:.2f}")
+                            c2.metric("Current Volatility / Optimal", f"{curr_std*100:.1f}%", f"{(opt_std - curr_std)*100:.1f}%", delta_color="inverse")
+                            c3.metric("Expected Return / Optimal", f"{curr_ret*100:.1f}%", f"{(opt_ret - curr_ret)*100:.1f}%")
+                            
+                            st.markdown("### Optimal Weighting vs Current")
+                            comp_df = pd.DataFrame([{"Ticker": t, "Current Weight": curr_weights_arr[i] * 100, "Optimal Weight": opt_weights[i] * 100} for i, t in enumerate(valid_opt_tickers)])
+                            
+                            fig_weights = go.Figure(data=[
+                                go.Bar(name='Current', x=comp_df['Ticker'], y=comp_df['Current Weight']),
+                                go.Bar(name='Optimal', x=comp_df['Ticker'], y=comp_df['Optimal Weight'])
+                            ])
+                            fig_weights.update_layout(barmode='group', title="Asset Allocation Profile", yaxis_title="Weight (%)", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+                            st.plotly_chart(fig_weights, use_container_width=True)
+                        else: st.error("Optimization failed to converge.")
+                except Exception as e: st.error(f"Failed: {e}")
 

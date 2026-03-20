@@ -125,7 +125,7 @@ def chunked(items: list[str], size: int) -> list[list[str]]:
     return [items[i : i + size] for i in range(0, len(items), size)]
 
 
-def fetch_ohlcv_and_indicators(tickers: list[str], lookback: str = "3mo") -> pd.DataFrame:
+def fetch_ohlcv_and_indicators(tickers: list[str], lookback: str = "1y") -> pd.DataFrame:
     rows: list[dict] = []
 
     for batch in chunked(tickers, 40):
@@ -158,9 +158,35 @@ def fetch_ohlcv_and_indicators(tickers: list[str], lookback: str = "3mo") -> pd.
                 avg_volume_20 = float(volume_series.tail(20).mean()) if not volume_series.empty else np.nan
                 unusual_volume_ratio = float(latest["Volume"] / avg_volume_20) if avg_volume_20 and avg_volume_20 > 0 else np.nan
 
-                ret_series = tdf["Close"].astype(float).pct_change()
+                close_series = tdf["Close"].astype(float)
+                ret_series = close_series.pct_change()
                 vol20 = float(ret_series.tail(20).std() * 100.0) if ret_series.notna().sum() >= 5 else np.nan
                 move_vs_vol = float(abs(pct_change) / vol20) if pd.notna(vol20) and vol20 > 0 else np.nan
+                
+                # Technical Analysis: RSI (14)
+                delta = close_series.diff()
+                gain = delta.where(delta > 0, 0.0)
+                loss = -delta.where(delta < 0, 0.0)
+                avg_gain = gain.ewm(alpha=1/14, min_periods=14, adjust=False).mean()
+                avg_loss = loss.ewm(alpha=1/14, min_periods=14, adjust=False).mean()
+                rs = avg_gain / avg_loss
+                rsi_series = 100.0 - (100.0 / (1.0 + rs))
+                current_rsi = float(rsi_series.iloc[-1]) if len(rsi_series) >= 14 and pd.notna(rsi_series.iloc[-1]) else np.nan
+                
+                # Technical Analysis: Moving Averages & Crossovers
+                sma_50 = close_series.rolling(window=50).mean()
+                sma_200 = close_series.rolling(window=200).mean()
+                current_sma_50 = float(sma_50.iloc[-1]) if len(sma_50) >= 50 else np.nan
+                current_sma_200 = float(sma_200.iloc[-1]) if len(sma_200) >= 200 else np.nan
+                prev_sma_50 = float(sma_50.iloc[-2]) if len(sma_50) >= 50 else np.nan
+                prev_sma_200 = float(sma_200.iloc[-2]) if len(sma_200) >= 200 else np.nan
+                
+                crossover = "None"
+                if pd.notna(current_sma_50) and pd.notna(current_sma_200) and pd.notna(prev_sma_50) and pd.notna(prev_sma_200):
+                    if prev_sma_50 <= prev_sma_200 and current_sma_50 > current_sma_200:
+                        crossover = "Golden Cross"
+                    elif prev_sma_50 >= prev_sma_200 and current_sma_50 < current_sma_200:
+                        crossover = "Death Cross"
 
                 rows.append(
                     {
@@ -177,6 +203,10 @@ def fetch_ohlcv_and_indicators(tickers: list[str], lookback: str = "3mo") -> pd.
                         "unusual_volume_ratio": unusual_volume_ratio,
                         "volatility_20d_pct": vol20,
                         "move_vs_vol": move_vs_vol,
+                        "rsi_14": current_rsi,
+                        "sma_50": current_sma_50,
+                        "sma_200": current_sma_200,
+                        "crossover": crossover
                     }
                 )
             except Exception:
@@ -483,6 +513,12 @@ def build_report_components(today_df: pd.DataFrame, master: pd.DataFrame, deriv_
 
     unusual_volume = valid[valid["unusual_volume_ratio"] >= 2.0].sort_values("unusual_volume_ratio", ascending=False).head(15)
     vol_adjusted_moves = valid.dropna(subset=["move_vs_vol"]).sort_values("move_vs_vol", ascending=False).head(15)
+    
+    # Technicals extraction
+    suppress_warnings = valid.copy()
+    oversold = suppress_warnings[suppress_warnings["rsi_14"] < 30].sort_values("rsi_14", ascending=True).head(5) if "rsi_14" in valid.columns else pd.DataFrame()
+    overbought = suppress_warnings[suppress_warnings["rsi_14"] > 70].sort_values("rsi_14", ascending=False).head(5) if "rsi_14" in valid.columns else pd.DataFrame()
+    crossovers = suppress_warnings[suppress_warnings["crossover"].isin(["Golden Cross", "Death Cross"])][["ticker", "sector", "close", "crossover"]] if "crossover" in valid.columns else pd.DataFrame()
 
     deriv_oi = deriv_data.get("oi", pd.DataFrame())
     deriv_vol = deriv_data.get("volume", pd.DataFrame())
@@ -507,6 +543,9 @@ def build_report_components(today_df: pd.DataFrame, master: pd.DataFrame, deriv_
         "rotation": rotation,
         "unusual_volume": unusual_volume,
         "vol_adjusted_moves": vol_adjusted_moves,
+        "oversold": oversold,
+        "overbought": overbought,
+        "crossovers": crossovers,
         "observations": observations,
         "deriv_oi": deriv_oi,
         "deriv_volume": deriv_vol,
@@ -565,6 +604,17 @@ def generate_markdown_report(parts: dict) -> str:
     report.append("")
     report.append("### Largest Moves vs Historical Volatility")
     report.append(_markdown_table(parts["vol_adjusted_moves"], ["ticker", "sector", "pct_change", "volatility_20d_pct", "move_vs_vol"]))
+    report.append("")
+
+    report.append("## Technical Alerts")
+    report.append("### Extremely Oversold (RSI < 30)")
+    report.append(_markdown_table(parts["oversold"], ["ticker", "sector", "close", "rsi_14", "pct_change"]) if not parts["oversold"].empty else "_No stocks fit criteria._")
+    report.append("")
+    report.append("### Extremely Overbought (RSI > 70)")
+    report.append(_markdown_table(parts["overbought"], ["ticker", "sector", "close", "rsi_14", "pct_change"]) if not parts["overbought"].empty else "_No stocks fit criteria._")
+    report.append("")
+    report.append("### Moving Average Crossovers (50 vs 200 DMA)")
+    report.append(_markdown_table(parts["crossovers"], ["ticker", "sector", "close", "crossover"]) if not parts["crossovers"].empty else "_No stocks fit criteria._")
     report.append("")
 
     report.append("## Key Observations")
@@ -647,6 +697,16 @@ def generate_html_report(parts: dict) -> str:
 
     <h3>Largest Moves vs Historical Volatility</h3>
     {_html_table(parts['vol_adjusted_moves'], ['ticker', 'sector', 'pct_change', 'volatility_20d_pct', 'move_vs_vol'])}
+
+    <h2>Technical Alerts</h2>
+    <h3>Severely Oversold (RSI < 30)</h3>
+    {_html_table(parts['oversold'], ['ticker', 'sector', 'close', 'rsi_14', 'pct_change']) if not parts["oversold"].empty else "<p><i>None</i></p>"}
+    
+    <h3>Severely Overbought (RSI > 70)</h3>
+    {_html_table(parts['overbought'], ['ticker', 'sector', 'close', 'rsi_14', 'pct_change']) if not parts["overbought"].empty else "<p><i>None</i></p>"}
+
+    <h3>Moving Average Crossovers (50 vs 200 DMA)</h3>
+    {_html_table(parts['crossovers'], ['ticker', 'sector', 'close', 'crossover']) if not parts["crossovers"].empty else "<p><i>None</i></p>"}
 
     <h2>Key Observations</h2>
     <ol>{observations_html}</ol>
