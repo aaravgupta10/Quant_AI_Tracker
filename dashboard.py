@@ -316,9 +316,8 @@ with tab3:
                             mu, sigma = port_returns.mean(), port_returns.std()
                             days, simulations = 252, 500
                             sim_returns = np.random.normal(mu, sigma, (days, simulations))
-                            price_paths = np.zeros_like(sim_returns)
-                            price_paths[0] = live_equity
-                            for t in range(1, days): price_paths[t] = price_paths[t-1] * (1 + sim_returns[t])
+                            sim_returns[0] = 0  # Day 0 is starting capital
+                            price_paths = live_equity * np.cumprod(1 + sim_returns, axis=0)
                             fig_mc = go.Figure()
                             for i in range(simulations): fig_mc.add_trace(go.Scatter(y=price_paths[:, i], mode='lines', line=dict(color='rgba(0,100,255,0.05)'), showlegend=False))
                             fig_mc.update_layout(title="500 Simulated Portfolio Paths", xaxis_title="Trading Days", yaxis_title="Projected Equity (₹)", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')

@@ -1,0 +1,501 @@
+ticker,market_cap,sector,industry,meta_updated_at
+360ONE.NS,417075101696.0,Financial Services,Asset Management,2026-03-14
+3MINDIA.NS,371578339328.0,Industrials,Conglomerates,2026-03-14
+ABB.NS,1354702913536.0,Industrials,Specialty Industrial Machinery,2026-03-14
+ACC.NS,258470395904.0,Basic Materials,Building Materials,2026-03-14
+ACMESOLAR.NS,154892451840.0,Utilities,Utilities - Renewable,2026-03-14
+AIAENG.NS,342047162368.0,Industrials,Specialty Industrial Machinery,2026-03-14
+APLAPOLLO.NS,536852168704.0,Basic Materials,Steel,2026-03-14
+AUBANK.NS,660769275904.0,Financial Services,Banks - Regional,2026-03-14
+AWL.NS,224130220032.0,Consumer Defensive,Packaged Foods,2026-03-14
+AADHARHFC.NS,199803944960.0,Financial Services,Mortgage Finance,2026-03-14
+AARTIIND.NS,152792727552.0,Basic Materials,Specialty Chemicals,2026-03-14
+AAVAS.NS,92638658560.0,Financial Services,Mortgage Finance,2026-03-14
+ABBOTINDIA.NS,572881174528.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+ACE.NS,100044587008.0,Industrials,Farm & Heavy Construction Machinery,2026-03-14
+ADANIENSOL.NS,1194237231104.0,Utilities,Utilities - Independent Power Producers,2026-03-14
+ADANIENT.NS,2670887436288.0,Energy,Thermal Coal,2026-03-14
+ADANIGREEN.NS,1418795155456.0,Utilities,Utilities - Renewable,2026-03-14
+ADANIPORTS.NS,3140756963328.0,Industrials,Marine Shipping,2026-03-14
+ADANIPOWER.NS,2826755375104.0,Utilities,Utilities - Independent Power Producers,2026-03-14
+ATGL.NS,622712061952.0,Utilities,Utilities - Regulated Gas,2026-03-14
+ABCAPITAL.NS,814087405568.0,Financial Services,Financial Conglomerates,2026-03-14
+ABFRL.NS,72107458560.0,Consumer Cyclical,Apparel Manufacturing,2026-03-14
+ABLBL.NS,118518833152.0,Consumer Cyclical,Apparel Retail,2026-03-14
+ABREL.NS,125374078976.0,Real Estate,Real Estate Services,2026-03-14
+ABSLAMC.NS,269379239936.0,Financial Services,Asset Management,2026-03-14
+AEGISLOG.NS,211266912256.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+AEGISVOPAK.NS,213631844352.0,Energy,Oil & Gas Equipment & Services,2026-03-14
+AFCONS.NS,102556745728.0,Industrials,Engineering & Construction,2026-03-14
+AFFLE.NS,188178923520.0,Communication Services,Advertising Agencies,2026-03-14
+AJANTPHARM.NS,378814529536.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+AKUMS.NS,72051539968.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+AKZOINDIA.NS,130518532096.0,Basic Materials,Specialty Chemicals,2026-03-14
+APLLTD.NS,133582823424.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+ALKEM.NS,640330366976.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+ALKYLAMINE.NS,65382555648.0,Basic Materials,Specialty Chemicals,2026-03-14
+ALOKINDS.NS,64697081856.0,Consumer Cyclical,Textile Manufacturing,2026-03-14
+ARE&M.NS,141622296576.0,Industrials,Electrical Equipment & Parts,2026-03-14
+AMBER.NS,226845491200.0,Consumer Cyclical,"Furnishings, Fixtures & Appliances",2026-03-14
+AMBUJACEM.NS,1051390050304.0,Basic Materials,Building Materials,2026-03-14
+ANANDRATHI.NS,252348956672.0,Financial Services,Asset Management,2026-03-14
+ANANTRAJ.NS,162033385472.0,Real Estate,Real Estate - Development,2026-03-14
+ANGELONE.NS,195974119424.0,Financial Services,Capital Markets,2026-03-14
+APARINDS.NS,361085927424.0,Industrials,Electrical Equipment & Parts,2026-03-14
+APOLLOHOSP.NS,1085574152192.0,Healthcare,Medical Care Facilities,2026-03-14
+APOLLOTYRE.NS,253518708736.0,Consumer Cyclical,Auto Parts,2026-03-14
+APTUS.NS,111169888256.0,Financial Services,Mortgage Finance,2026-03-14
+ASAHIINDIA.NS,211589578752.0,Consumer Cyclical,Auto Parts,2026-03-14
+ASHOKLEY.NS,1002373251072.0,Industrials,Farm & Heavy Construction Machinery,2026-03-14
+ASIANPAINT.NS,2105839976448.0,Basic Materials,Specialty Chemicals,2026-03-14
+ASTERDM.NS,344853020672.0,Healthcare,Medical Care Facilities,2026-03-14
+ASTRAZEN.NS,210025005056.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+ASTRAL.NS,433010376704.0,Industrials,Building Products & Equipment,2026-03-14
+ATHERENERG.NS,269575192576.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+ATUL.NS,190311514112.0,Basic Materials,Specialty Chemicals,2026-03-14
+AUROPHARMA.NS,753009295360.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+AIIL.NS,403212238848.0,Financial Services,Capital Markets,2026-03-14
+DMART.NS,2495105728512.0,Consumer Defensive,Discount Stores,2026-03-14
+AXISBANK.NS,3720286044160.0,Financial Services,Banks - Regional,2026-03-14
+BASF.NS,149915484160.0,Basic Materials,Specialty Chemicals,2026-03-14
+BEML.NS,127079784448.0,Industrials,Conglomerates,2026-03-14
+BLS.NS,101667110912.0,Industrials,Specialty Business Services,2026-03-14
+BSE.NS,1135943090176.0,Financial Services,Financial Data & Stock Exchanges,2026-03-14
+BAJAJ-AUTO.NS,2478366261248.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+BAJFINANCE.NS,5315286269952.0,Financial Services,Credit Services,2026-03-14
+BAJAJFINSV.NS,2776450203648.0,Financial Services,Financial Conglomerates,2026-03-14
+BAJAJHLDNG.NS,1057956102144.0,Financial Services,Asset Management,2026-03-14
+BAJAJHFL.NS,684199575552.0,Financial Services,Mortgage Finance,2026-03-14
+BALKRISIND.NS,430266056704.0,Consumer Cyclical,Auto Parts,2026-03-14
+BALRAMCHIN.NS,98214166528.0,Consumer Defensive,Confectioners,2026-03-14
+BANDHANBNK.NS,282725482496.0,Financial Services,Banks - Regional,2026-03-14
+BANKBARODA.NS,1453411270656.0,Financial Services,Banks - Regional,2026-03-14
+BANKINDIA.NS,683810684928.0,Financial Services,Banks - Regional,2026-03-14
+MAHABANK.NS,492951732224.0,Financial Services,Banks - Regional,2026-03-14
+BATAINDIA.NS,89892159488.0,Consumer Cyclical,Footwear & Accessories,2026-03-14
+BAYERCROP.NS,202633543680.0,Basic Materials,Agricultural Inputs,2026-03-14
+BERGEPAINT.NS,476648177664.0,Basic Materials,Specialty Chemicals,2026-03-14
+BDL.NS,480930004992.0,Industrials,Aerospace & Defense,2026-03-14
+BEL.NS,3211916738560.0,Industrials,Aerospace & Defense,2026-03-14
+BHARATFORG.NS,800846249984.0,Consumer Cyclical,Auto Parts,2026-03-14
+BHEL.NS,900113367040.0,Industrials,Specialty Industrial Machinery,2026-03-14
+BPCL.NS,1385284763648.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+BHARTIARTL.NS,10985360326656.0,Communication Services,Telecom Services,2026-03-14
+BHARTIHEXA.NS,736249970688.0,Communication Services,Telecom Services,2026-03-14
+BIKAJI.NS,151220174848.0,Consumer Defensive,Packaged Foods,2026-03-14
+BIOCON.NS,621094502400.0,Healthcare,Biotechnology,2026-03-14
+BSOFT.NS,100656979968.0,Technology,Information Technology Services,2026-03-14
+BLUEDART.NS,123847950336.0,Industrials,Integrated Freight & Logistics,2026-03-14
+BLUEJET.NS,62170005504.0,Healthcare,Biotechnology,2026-03-14
+BLUESTARCO.NS,376889081856.0,Industrials,Building Products & Equipment,2026-03-14
+BBTC.NS,106562633728.0,Consumer Defensive,Packaged Foods,2026-03-14
+BOSCHLTD.NS,890521255936.0,Consumer Cyclical,Auto Parts,2026-03-14
+FIRSTCRY.NS,108506480640.0,Consumer Cyclical,Internet Retail,2026-03-14
+BRIGADE.NS,159890751488.0,Real Estate,Real Estate - Development,2026-03-14
+BRITANNIA.NS,1399083499520.0,Consumer Defensive,Packaged Foods,2026-03-14
+MAPMYINDIA.NS,51120979968.0,Technology,Software - Infrastructure,2026-03-14
+CCL.NS,136208310272.0,Consumer Defensive,Packaged Foods,2026-03-14
+CESC.NS,211733364736.0,Utilities,Utilities - Regulated Electric,2026-03-14
+CGPOWER.NS,1118031839232.0,Industrials,Electrical Equipment & Parts,2026-03-14
+CRISIL.NS,304774381568.0,Financial Services,Financial Data & Stock Exchanges,2026-03-14
+CAMPUS.NS,72456151040.0,Consumer Cyclical,Footwear & Accessories,2026-03-14
+CANFINHOME.NS,109169123328.0,Financial Services,Mortgage Finance,2026-03-14
+CANBK.NS,1221635211264.0,Financial Services,Banks - Regional,2026-03-14
+CAPLIPOINT.NS,126559715328.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+CGCL.NS,163652763648.0,Financial Services,Credit Services,2026-03-14
+CARBORUNIV.NS,143915024384.0,Industrials,Conglomerates,2026-03-14
+CASTROLIND.NS,184194367488.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+CEATLTD.NS,140005244928.0,Consumer Cyclical,Auto Parts,2026-03-14
+CENTRALBK.NS,321496580096.0,Financial Services,Banks - Regional,2026-03-14
+CDSL.NS,245888499712.0,Financial Services,Capital Markets,2026-03-14
+CENTURYPLY.NS,146511986688.0,Basic Materials,Lumber & Wood Production,2026-03-14
+CERA.NS,58330869760.0,Industrials,Building Products & Equipment,2026-03-14
+CHALET.NS,160714702848.0,Consumer Cyclical,Lodging,2026-03-14
+CHAMBLFERT.NS,166491045888.0,Basic Materials,Agricultural Inputs,2026-03-14
+CHENNPETRO.NS,136861270016.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+CHOICEIN.NS,139287592960.0,Financial Services,Capital Markets,2026-03-14
+CHOLAHLDNG.NS,292173676544.0,Financial Services,Credit Services,2026-03-14
+CHOLAFIN.NS,1289700245504.0,Financial Services,Credit Services,2026-03-14
+CIPLA.NS,1061989187584.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+CUB.NS,172015435776.0,Financial Services,Banks - Regional,2026-03-14
+CLEAN.NS,74541146112.0,Basic Materials,Specialty Chemicals,2026-03-14
+COALINDIA.NS,2877994303488.0,Energy,Thermal Coal,2026-03-14
+COCHINSHIP.NS,364599672832.0,Industrials,Aerospace & Defense,2026-03-14
+COFORGE.NS,366039728128.0,Technology,Information Technology Services,2026-03-14
+COHANCE.NS,113386332160.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+COLPAL.NS,532330250240.0,Consumer Defensive,Household & Personal Products,2026-03-14
+CAMS.NS,159858311168.0,Technology,Information Technology Services,2026-03-14
+CONCORDBIO.NS,123677278208.0,Healthcare,Biotechnology,2026-03-14
+CONCOR.NS,345317572608.0,Industrials,Railroads,2026-03-14
+COROMANDEL.NS,590144012288.0,Basic Materials,Agricultural Inputs,2026-03-14
+CRAFTSMAN.NS,159212175360.0,Consumer Cyclical,Auto Parts,2026-03-14
+CREDITACC.NS,185873350656.0,Financial Services,Credit Services,2026-03-14
+CROMPTON.NS,160948469760.0,Consumer Cyclical,"Furnishings, Fixtures & Appliances",2026-03-14
+CUMMINSIND.NS,1288896905216.0,Industrials,Specialty Industrial Machinery,2026-03-14
+CYIENT.NS,96071729152.0,Industrials,Conglomerates,2026-03-14
+DCMSHRIRAM.NS,157872553984.0,Industrials,Conglomerates,2026-03-14
+DLF.NS,1343964053504.0,Real Estate,Real Estate - Development,2026-03-14
+DOMS.NS,126409990144.0,Industrials,Business Equipment & Supplies,2026-03-14
+DABUR.NS,804368482304.0,Consumer Defensive,Household & Personal Products,2026-03-14
+DALBHARAT.NS,345402212352.0,Basic Materials,Building Materials,2026-03-14
+DATAPATTNS.NS,179988463616.0,Industrials,Aerospace & Defense,2026-03-14
+DEEPAKFERT.NS,119232004096.0,Basic Materials,Chemicals,2026-03-14
+DEEPAKNTR.NS,197551685632.0,Basic Materials,Chemicals,2026-03-14
+DELHIVERY.NS,302850965504.0,Industrials,Integrated Freight & Logistics,2026-03-14
+DEVYANI.NS,138015277056.0,Consumer Cyclical,Restaurants,2026-03-14
+DIVISLAB.NS,1611659739136.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+DIXON.NS,627625820160.0,Technology,Consumer Electronics,2026-03-14
+AGARWALEYE.NS,135625302016.0,Healthcare,Medical Instruments & Supplies,2026-03-14
+LALPATHLAB.NS,226265743360.0,Healthcare,Diagnostics & Research,2026-03-14
+DRREDDY.NS,1076111802368.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+EIDPARRY.NS,140534415360.0,Basic Materials,Agricultural Inputs,2026-03-14
+EIHOTEL.NS,198740721664.0,Consumer Cyclical,Lodging,2026-03-14
+EICHERMOT.NS,1849152110592.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+ELECON.NS,85417836544.0,Industrials,Specialty Industrial Machinery,2026-03-14
+ELGIEQUIP.NS,148264108032.0,Industrials,Specialty Industrial Machinery,2026-03-14
+EMAMILTD.NS,181622996992.0,Consumer Defensive,Household & Personal Products,2026-03-14
+EMCURE.NS,272629776384.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+ENDURANCE.NS,338069061632.0,Consumer Cyclical,Auto Parts,2026-03-14
+ENGINERSIN.NS,106316087296.0,Industrials,Engineering & Construction,2026-03-14
+ERIS.NS,179956137984.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+ESCORTS.NS,343343988736.0,Industrials,Farm & Heavy Construction Machinery,2026-03-14
+ETERNAL.NS,1965307592704.0,Consumer Cyclical,Internet Retail,2026-03-14
+EXIDEIND.NS,252179611648.0,Consumer Cyclical,Auto Parts,2026-03-14
+NYKAA.NS,681837264896.0,Consumer Cyclical,Internet Retail,2026-03-14
+FEDERALBNK.NS,648012169216.0,Financial Services,Banks - Regional,2026-03-14
+FACT.NS,550981795840.0,Basic Materials,Agricultural Inputs,2026-03-14
+FINCABLES.NS,130916081664.0,Industrials,Electrical Equipment & Parts,2026-03-14
+FINPIPE.NS,114029453312.0,Industrials,Building Products & Equipment,2026-03-14
+FSL.NS,155663958016.0,Technology,Information Technology Services,2026-03-14
+FIVESTAR.NS,104076222464.0,Financial Services,Credit Services,2026-03-14
+FORCEMOT.NS,266753425408.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+FORTIS.NS,633976127488.0,Healthcare,Medical Care Facilities,2026-03-14
+GAIL.NS,971665244160.0,Utilities,Utilities - Regulated Gas,2026-03-14
+GVT&D.NS,922868514816.0,Industrials,Specialty Industrial Machinery,2026-03-14
+GMRAIRPORT.NS,942494253056.0,Industrials,Airports & Air Services,2026-03-14
+GRSE.NS,264566767616.0,Industrials,Aerospace & Defense,2026-03-14
+GICRE.NS,631320870912.0,Financial Services,Insurance - Reinsurance,2026-03-14
+GILLETTE.NS,260013735936.0,Consumer Defensive,Household & Personal Products,2026-03-14
+GLAND.NS,267992776704.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+GLAXO.NS,410691043328.0,Healthcare,Drug Manufacturers - General,2026-03-14
+GLENMARK.NS,612783947776.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+MEDANTA.NS,288069910528.0,Healthcare,Medical Care Facilities,2026-03-14
+GODIGIT.NS,309312684032.0,Financial Services,Insurance - Property & Casualty,2026-03-14
+GPIL.NS,163172417536.0,Basic Materials,Steel,2026-03-14
+GODFRYPHLP.NS,314552811520.0,Consumer Defensive,Tobacco,2026-03-14
+GODREJAGRO.NS,109521362944.0,Consumer Defensive,Packaged Foods,2026-03-14
+GODREJCP.NS,1051793162240.0,Consumer Defensive,Household & Personal Products,2026-03-14
+GODREJIND.NS,282225606656.0,Industrials,Conglomerates,2026-03-14
+GODREJPROP.NS,475125088256.0,Real Estate,Real Estate - Development,2026-03-14
+GRANULES.NS,139311431680.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+GRAPHITE.NS,121511395328.0,Industrials,Electrical Equipment & Parts,2026-03-14
+GRASIM.NS,1741749092352.0,Basic Materials,Building Materials,2026-03-14
+GRAVITA.NS,103428415488.0,Industrials,Metal Fabrication,2026-03-14
+GESHIP.NS,208425795584.0,Industrials,Marine Shipping,2026-03-14
+FLUOROCHEM.NS,337305436160.0,Basic Materials,Specialty Chemicals,2026-03-14
+GUJGASLTD.NS,257664417792.0,Utilities,Utilities - Regulated Gas,2026-03-14
+GMDCLTD.NS,168170586112.0,Energy,Thermal Coal,2026-03-14
+GSPL.NS,153289850880.0,Utilities,Utilities - Regulated Gas,2026-03-14
+HEG.NS,95726501888.0,Industrials,Electrical Equipment & Parts,2026-03-14
+HBLENGINE.NS,182532866048.0,Industrials,Electrical Equipment & Parts,2026-03-14
+HCLTECH.NS,3586071986176.0,Technology,Information Technology Services,2026-03-14
+HDFCAMC.NS,1019925037056.0,Financial Services,Asset Management,2026-03-14
+HDFCBANK.NS,12573860691968.0,Financial Services,Banks - Regional,2026-03-14
+HDFCLIFE.NS,1349790334976.0,Financial Services,Insurance - Life,2026-03-14
+HFCL.NS,110127587328.0,Technology,Communication Equipment,2026-03-14
+HAPPSTMNDS.NS,59078389760.0,Technology,Information Technology Services,2026-03-14
+HAVELLS.NS,821880160256.0,Industrials,Electrical Equipment & Parts,2026-03-14
+HEROMOTOCO.NS,1041667391488.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+HEXT.NS,250654474240.0,Technology,Information Technology Services,2026-03-14
+HSCL.NS,222966972416.0,Basic Materials,Specialty Chemicals,2026-03-14
+HINDALCO.NS,2034758320128.0,Basic Materials,Aluminum,2026-03-14
+HAL.NS,2617852821504.0,Industrials,Aerospace & Defense,2026-03-14
+HINDCOPPER.NS,480119226368.0,Basic Materials,Copper,2026-03-14
+HINDPETRO.NS,784634544128.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+HINDUNILVR.NS,5075854426112.0,Consumer Defensive,Household & Personal Products,2026-03-14
+HINDZINC.NS,2332164882432.0,Basic Materials,Other Industrial Metals & Mining,2026-03-14
+POWERINDIA.NS,1077888221184.0,Industrials,Electrical Equipment & Parts,2026-03-14
+HOMEFIRST.NS,102963798016.0,Financial Services,Mortgage Finance,2026-03-14
+HONASA.NS,87538778112.0,Consumer Defensive,Household & Personal Products,2026-03-14
+HONAUT.NS,265863135232.0,Industrials,Electrical Equipment & Parts,2026-03-14
+HUDCO.NS,345728122880.0,Financial Services,Credit Services,2026-03-14
+HYUNDAI.NS,1639707967488.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+ICICIBANK.NS,8981072314368.0,Financial Services,Banks - Regional,2026-03-14
+ICICIGI.NS,915326173184.0,Financial Services,Insurance - Diversified,2026-03-14
+ICICIPRULI.NS,845644103680.0,Financial Services,Insurance - Life,2026-03-14
+IDBI.NS,991252643840.0,Financial Services,Banks - Regional,2026-03-14
+IDFCFIRSTB.NS,538051411968.0,Financial Services,Banks - Regional,2026-03-14
+IFCI.NS,154374832128.0,Financial Services,Credit Services,2026-03-14
+IIFL.NS,203025088512.0,Financial Services,Credit Services,2026-03-14
+INOXINDIA.NS,103152721920.0,Industrials,Specialty Industrial Machinery,2026-03-14
+IRB.NS,250980843520.0,Industrials,Infrastructure Operations,2026-03-14
+IRCON.NS,122473955328.0,Industrials,Engineering & Construction,2026-03-14
+ITCHOTELS.NS,319101665280.0,Consumer Cyclical,Resorts & Casinos,2026-03-14
+ITC.NS,3776936411136.0,Consumer Defensive,Tobacco,2026-03-14
+ITI.NS,233675505664.0,Technology,Communication Equipment,2026-03-14
+INDGN.NS,103156121600.0,Healthcare,Health Information Services,2026-03-14
+INDIACEM.NS,164694654976.0,Basic Materials,Building Materials,2026-03-14
+INDIAMART.NS,126260658176.0,Communication Services,Internet Content & Information,2026-03-14
+INDIANB.NS,1172682833920.0,Financial Services,Banks - Regional,2026-03-14
+IEX.NS,106938359808.0,Financial Services,Capital Markets,2026-03-14
+INDHOTEL.NS,868080091136.0,Consumer Cyclical,Lodging,2026-03-14
+IOC.NS,2210538455040.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+IOB.NS,628305035264.0,Financial Services,Banks - Regional,2026-03-14
+IRCTC.NS,422079987712.0,Consumer Cyclical,Travel Services,2026-03-14
+IRFC.NS,1270504751104.0,Financial Services,Credit Services,2026-03-14
+IREDA.NS,322640216064.0,Financial Services,Credit Services,2026-03-14
+IGL.NS,219316944896.0,Utilities,Utilities - Regulated Gas,2026-03-14
+INDUSTOWER.NS,1118021222400.0,Communication Services,Telecom Services,2026-03-14
+INDUSINDBK.NS,634504019968.0,Financial Services,Banks - Regional,2026-03-14
+NAUKRI.NS,616679342080.0,Communication Services,Internet Content & Information,2026-03-14
+INFY.NS,5051129528320.0,Technology,Information Technology Services,2026-03-14
+INOXWIND.NS,137628385280.0,Industrials,Specialty Industrial Machinery,2026-03-14
+INTELLECT.NS,91797004288.0,Technology,Software - Application,2026-03-14
+INDIGO.NS,1607613415424.0,Industrials,Airlines,2026-03-14
+IGIL.NS,133472518144.0,Basic Materials,Other Precious Metals & Mining,2026-03-14
+IKS.NS,222338596864.0,Healthcare,Health Information Services,2026-03-14
+IPCALAB.NS,397546127360.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+JBCHEPHARM.NS,340673462272.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+JKCEMENT.NS,386495774720.0,Basic Materials,Building Materials,2026-03-14
+JBMA.NS,116945698816.0,Consumer Cyclical,Auto Parts,2026-03-14
+JKTYRE.NS,118797664256.0,Consumer Cyclical,Auto Parts,2026-03-14
+JMFINANCIL.NS,113271767040.0,Financial Services,Capital Markets,2026-03-14
+JSWCEMENT.NS,155020328960.0,Basic Materials,Building Materials,2026-03-14
+JSWENERGY.NS,900805165056.0,Utilities,Utilities - Independent Power Producers,2026-03-14
+JSWINFRA.NS,528163962880.0,Industrials,Marine Shipping,2026-03-14
+JSWSTEEL.NS,2734295351296.0,Basic Materials,Steel,2026-03-14
+JPPOWER.NS,95318523904.0,Utilities,Utilities - Independent Power Producers,2026-03-14
+J&KBANK.NS,133033852928.0,Financial Services,Banks - Regional,2026-03-14
+JINDALSAW.NS,121952444416.0,Basic Materials,Steel,2026-03-14
+JSL.NS,582891536384.0,Basic Materials,Steel,2026-03-14
+JINDALSTEL.NS,1163294277632.0,Basic Materials,Steel,2026-03-14
+JIOFIN.NS,1494576660480.0,Financial Services,Asset Management,2026-03-14
+JUBLFOOD.NS,301316046848.0,Consumer Cyclical,Restaurants,2026-03-14
+JUBLINGREA.NS,88154513408.0,Basic Materials,Specialty Chemicals,2026-03-14
+JUBLPHARMA.NS,133795168256.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+JWL.NS,112035143680.0,Industrials,Railroads,2026-03-14
+JYOTHYLAB.NS,80658661376.0,Consumer Defensive,Household & Personal Products,2026-03-14
+JYOTICNC.NS,162823569408.0,Industrials,Specialty Industrial Machinery,2026-03-14
+KPRMILL.NS,287444926464.0,Consumer Cyclical,Textile Manufacturing,2026-03-14
+KEI.NS,397507264512.0,Industrials,Electrical Equipment & Parts,2026-03-14
+KPITTECH.NS,179824459776.0,Technology,Software - Infrastructure,2026-03-14
+KSB.NS,130703450112.0,Industrials,Specialty Industrial Machinery,2026-03-14
+KAJARIACER.NS,144961683456.0,Industrials,Building Products & Equipment,2026-03-14
+KPIL.NS,188191342592.0,Industrials,Engineering & Construction,2026-03-14
+KALYANKJIL.NS,391580745728.0,Consumer Cyclical,Luxury Goods,2026-03-14
+KARURVYSYA.NS,272683204608.0,Financial Services,Banks - Regional,2026-03-14
+KAYNES.NS,233162735616.0,Technology,Electronic Components,2026-03-14
+KEC.NS,146157109248.0,Industrials,Engineering & Construction,2026-03-14
+KFINTECH.NS,153986334720.0,Technology,Software - Application,2026-03-14
+KIRLOSBROS.NS,120739938304.0,Industrials,Specialty Industrial Machinery,2026-03-14
+KIRLOSENG.NS,210960515072.0,Industrials,Specialty Industrial Machinery,2026-03-14
+KOTAKBANK.NS,3648503939072.0,Financial Services,Banks - Regional,2026-03-14
+KIMS.NS,254048223232.0,Healthcare,Medical Care Facilities,2026-03-14
+LTF.NS,646131613696.0,Financial Services,Credit Services,2026-03-14
+LTTS.NS,363577311232.0,Technology,Information Technology Services,2026-03-14
+LICHSGFIN.NS,273161273344.0,Financial Services,Mortgage Finance,2026-03-14
+LTFOODS.NS,133847891968.0,Consumer Defensive,Packaged Foods,2026-03-14
+LTM.NS,1246969200640.0,Technology,Information Technology Services,2026-03-14
+LT.NS,4730728218624.0,Industrials,Engineering & Construction,2026-03-14
+LATENTVIEW.NS,57990725632.0,Industrials,Consulting Services,2026-03-14
+LAURUSLABS.NS,541822648320.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+THELEELA.NS,144336601088.0,Consumer Cyclical,Lodging,2026-03-14
+LEMONTREE.NS,80063709184.0,Consumer Cyclical,Lodging,2026-03-14
+LICI.NS,4887325704192.0,Financial Services,Insurance - Life,2026-03-14
+LINDEINDIA.NS,592256303104.0,Basic Materials,Specialty Chemicals,2026-03-14
+LLOYDSME.NS,621097910272.0,Basic Materials,Steel,2026-03-14
+LODHA.NS,865264533504.0,Real Estate,Real Estate - Development,2026-03-14
+LUPIN.NS,1058009317376.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+MMTC.NS,80006340608.0,Industrials,Conglomerates,2026-03-14
+MRF.NS,572215001088.0,Consumer Cyclical,Auto Parts,2026-03-14
+MGL.NS,102234996736.0,Utilities,Utilities - Regulated Gas,2026-03-14
+MAHSCOOTER.NS,144495788032.0,Financial Services,Asset Management,2026-03-14
+MAHSEAMLES.NS,73672785920.0,Basic Materials,Steel,2026-03-14
+M&MFIN.NS,458805739520.0,Financial Services,Credit Services,2026-03-14
+M&M.NS,3518705958912.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+MANAPPURAM.NS,216771952640.0,Financial Services,Credit Services,2026-03-14
+MRPL.NS,312557076480.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+MANKIND.NS,882948702208.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+MARICO.NS,974778859520.0,Consumer Defensive,Household & Personal Products,2026-03-14
+MARUTI.NS,3958642573312.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+MFSL.NS,562234261504.0,Financial Services,Insurance - Life,2026-03-14
+MAXHEALTH.NS,964160389120.0,Healthcare,Medical Care Facilities,2026-03-14
+MAZDOCK.NS,939068620800.0,Industrials,Aerospace & Defense,2026-03-14
+METROPOLIS.NS,93743251456.0,Healthcare,Diagnostics & Research,2026-03-14
+MINDACORP.NS,113173299200.0,Consumer Cyclical,Auto Parts,2026-03-14
+MSUMI.NS,259165372416.0,Consumer Cyclical,Auto Parts,2026-03-14
+MOTILALOFS.NS,409269927936.0,Financial Services,Capital Markets,2026-03-14
+MPHASIS.NS,403220627456.0,Technology,Information Technology Services,2026-03-14
+MCX.NS,635979825152.0,Financial Services,Financial Data & Stock Exchanges,2026-03-14
+MUTHOOTFIN.NS,1338929446912.0,Financial Services,Credit Services,2026-03-14
+NATCOPHARM.NS,171296964608.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+NBCC.NS,224639991808.0,Industrials,Engineering & Construction,2026-03-14
+NCC.NS,90585702400.0,Industrials,Engineering & Construction,2026-03-14
+NHPC.NS,753176739840.0,Utilities,Utilities - Renewable,2026-03-14
+NLCINDIA.NS,359832223744.0,Utilities,Utilities - Regulated Electric,2026-03-14
+NMDC.NS,690948866048.0,Basic Materials,Steel,2026-03-14
+NSLNISP.NS,107284406272.0,Basic Materials,Steel,2026-03-14
+NTPCGREEN.NS,827044265984.0,Utilities,Utilities - Renewable,2026-03-14
+NTPC.NS,3727883501568.0,Utilities,Utilities - Regulated Electric,2026-03-14
+NH.NS,338933022720.0,Healthcare,Medical Care Facilities,2026-03-14
+NATIONALUM.NS,712211562496.0,Basic Materials,Aluminum,2026-03-14
+NAVA.NS,156131803136.0,Industrials,Conglomerates,2026-03-14
+NAVINFLUOR.NS,316795289600.0,Basic Materials,Chemicals,2026-03-14
+NESTLEIND.NS,2318219345920.0,Consumer Defensive,Packaged Foods,2026-03-14
+NETWEB.NS,181004582912.0,Technology,Computer Hardware,2026-03-14
+NEULANDLAB.NS,156065497088.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+NEWGEN.NS,62214270976.0,Technology,Software - Infrastructure,2026-03-14
+NAM-INDIA.NS,524879200256.0,Financial Services,Asset Management,2026-03-14
+NIVABUPA.NS,133552463872.0,Financial Services,Insurance - Life,2026-03-14
+NUVAMA.NS,211022888960.0,Financial Services,Asset Management,2026-03-14
+NUVOCO.NS,104400887808.0,Basic Materials,Building Materials,2026-03-14
+OBEROIRLTY.NS,528065789952.0,Real Estate,Real Estate - Development,2026-03-14
+ONGC.NS,3322451853312.0,Energy,Oil & Gas Integrated,2026-03-14
+OIL.NS,765670785024.0,Energy,Oil & Gas Integrated,2026-03-14
+OLAELEC.NS,96847724544.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+OLECTRA.NS,72267988992.0,Industrials,Farm & Heavy Construction Machinery,2026-03-14
+PAYTM.NS,624812621824.0,Technology,Software - Infrastructure,2026-03-14
+ONESOURCE.NS,171606147072.0,Healthcare,Biotechnology,2026-03-14
+OFSS.NS,567952539648.0,Technology,Software - Infrastructure,2026-03-14
+POLICYBZR.NS,669780606976.0,Financial Services,Insurance Brokers,2026-03-14
+PCBL.NS,99624730624.0,Basic Materials,Specialty Chemicals,2026-03-14
+PGEL.NS,142912782336.0,Technology,Electronic Components,2026-03-14
+PIIND.NS,439378083840.0,Basic Materials,Agricultural Inputs,2026-03-14
+PNBHOUSING.NS,199002488832.0,Financial Services,Mortgage Finance,2026-03-14
+PTCIL.NS,254858346496.0,Industrials,Metal Fabrication,2026-03-14
+PVRINOX.NS,95636946944.0,Communication Services,Entertainment,2026-03-14
+PAGEIND.NS,337999888384.0,Consumer Cyclical,Apparel Manufacturing,2026-03-14
+PATANJALI.NS,525591904256.0,Consumer Defensive,Packaged Foods,2026-03-14
+PERSISTENT.NS,725350219776.0,Technology,Information Technology Services,2026-03-14
+PETRONET.NS,429450002432.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+PFIZER.NS,211491766272.0,Healthcare,Drug Manufacturers - General,2026-03-14
+PHOENIXLTD.NS,560538976256.0,Real Estate,Real Estate - Diversified,2026-03-14
+PIDILITIND.NS,1363806781440.0,Basic Materials,Specialty Chemicals,2026-03-14
+PPLPHARMA.NS,185116688384.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+POLYMED.NS,127884451840.0,Healthcare,Medical Instruments & Supplies,2026-03-14
+POLYCAB.NS,1084120891392.0,Industrials,Electrical Equipment & Parts,2026-03-14
+POONAWALLA.NS,329963634688.0,Financial Services,Credit Services,2026-03-14
+PFC.NS,1338521288704.0,Financial Services,Credit Services,2026-03-14
+POWERGRID.NS,2799016869888.0,Utilities,Utilities - Regulated Electric,2026-03-14
+PRAJIND.NS,55585075200.0,Industrials,Engineering & Construction,2026-03-14
+PREMIERENE.NS,351138578432.0,Technology,Solar,2026-03-14
+PRESTIGE.NS,541427924992.0,Real Estate,Real Estate - Diversified,2026-03-14
+PGHH.NS,341551874048.0,Consumer Defensive,Household & Personal Products,2026-03-14
+PNB.NS,1283969515520.0,Financial Services,Banks - Regional,2026-03-14
+RRKABEL.NS,151906025472.0,Industrials,Electrical Equipment & Parts,2026-03-14
+RBLBANK.NS,182188343296.0,Financial Services,Banks - Regional,2026-03-14
+RECLTD.NS,873036120064.0,Financial Services,Credit Services,2026-03-14
+RHIM.NS,77541285888.0,Industrials,Metal Fabrication,2026-03-14
+RITES.NS,94602043392.0,Industrials,Engineering & Construction,2026-03-14
+RADICO.NS,374915170304.0,Consumer Defensive,Beverages - Wineries & Distilleries,2026-03-14
+RVNL.NS,565719990272.0,Industrials,Engineering & Construction,2026-03-14
+RAILTEL.NS,89220874240.0,Communication Services,Telecom Services,2026-03-14
+RAINBOW.NS,114991874048.0,Healthcare,Medical Care Facilities,2026-03-14
+RKFORGE.NS,101272100864.0,Industrials,Metal Fabrication,2026-03-14
+RCF.NS,66974941184.0,Basic Materials,Agricultural Inputs,2026-03-14
+REDINGTON.NS,183365189632.0,Technology,Information Technology Services,2026-03-14
+RELIANCE.NS,18684284239872.0,Energy,Oil & Gas Refining & Marketing,2026-03-14
+RELINFRA.NS,34954637312.0,Utilities,Utilities - Independent Power Producers,2026-03-14
+RPOWER.NS,92020899840.0,Utilities,Utilities - Independent Power Producers,2026-03-14
+SBFC.NS,100563836928.0,Financial Services,Credit Services,2026-03-14
+SBICARD.NS,670816141312.0,Financial Services,Credit Services,2026-03-14
+SBILIFE.NS,1910145155072.0,Financial Services,Insurance - Life,2026-03-14
+SJVN.NS,274653380608.0,Utilities,Utilities - Renewable,2026-03-14
+SRF.NS,740973150208.0,Industrials,Conglomerates,2026-03-14
+SAGILITY.NS,177094672384.0,Healthcare,Health Information Services,2026-03-14
+SAILIFE.NS,201825615872.0,Healthcare,Diagnostics & Research,2026-03-14
+SAMMAANCAP.NS,114319663104.0,Financial Services,Mortgage Finance,2026-03-14
+MOTHERSON.NS,1201306730496.0,Consumer Cyclical,Auto Parts,2026-03-14
+SAPPHIRE.NS,52298539008.0,Consumer Cyclical,Restaurants,2026-03-14
+SARDAEN.NS,186885406720.0,Basic Materials,Steel,2026-03-14
+SAREGAMA.NS,65816219648.0,Communication Services,Entertainment,2026-03-14
+SCHAEFFLER.NS,598736830464.0,Consumer Cyclical,Auto Parts,2026-03-14
+SCHNEIDER.NS,211774439424.0,Industrials,Electrical Equipment & Parts,2026-03-14
+SCI.NS,111279382528.0,Industrials,Marine Shipping,2026-03-14
+SHREECEM.NS,828594388992.0,Basic Materials,Building Materials,2026-03-14
+SHRIRAMFIN.NS,1888301481984.0,Financial Services,Credit Services,2026-03-14
+SHYAMMETL.NS,214208069632.0,Basic Materials,Steel,2026-03-14
+ENRIN.NS,996033429504.0,Utilities,Utilities - Renewable,2026-03-14
+SIEMENS.NS,1142292217856.0,Industrials,Specialty Industrial Machinery,2026-03-14
+SIGNATURE.NS,112928440320.0,Real Estate,Real Estate - Development,2026-03-14
+SOBHA.NS,138386292736.0,Real Estate,Real Estate - Development,2026-03-14
+SOLARINDS.NS,1289573761024.0,Basic Materials,Specialty Chemicals,2026-03-14
+SONACOMS.NS,302248689664.0,Consumer Cyclical,Auto Parts,2026-03-14
+SONATSOFTW.NS,65416724480.0,Technology,Information Technology Services,2026-03-14
+STARHEALTH.NS,272811966464.0,Financial Services,Insurance - Life,2026-03-14
+SBIN.NS,9664456556544.0,Financial Services,Banks - Regional,2026-03-14
+SAIL.NS,619124424704.0,Basic Materials,Steel,2026-03-14
+SUMICHEM.NS,190299308032.0,Basic Materials,Agricultural Inputs,2026-03-14
+SUNPHARMA.NS,4322641838080.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+SUNTV.NS,221790814208.0,Communication Services,Broadcasting,2026-03-14
+SUNDARMFIN.NS,566329671680.0,Financial Services,Credit Services,2026-03-14
+SUNDRMFAST.NS,172778045440.0,Consumer Cyclical,Auto Parts,2026-03-14
+SUPREMEIND.NS,493903380480.0,Industrials,Building Products & Equipment,2026-03-14
+SUZLON.NS,567927832576.0,Industrials,Specialty Industrial Machinery,2026-03-14
+SWANCORP.NS,109189054464.0,Industrials,Conglomerates,2026-03-14
+SWIGGY.NS,732598435840.0,Consumer Cyclical,Internet Retail,2026-03-14
+SYNGENE.NS,169155084288.0,Healthcare,Diagnostics & Research,2026-03-14
+SYRMA.NS,139622285312.0,Technology,Electronic Components,2026-03-14
+TBOTEK.NS,123838767104.0,Consumer Cyclical,Travel Services,2026-03-14
+TVSMOTOR.NS,1579004854272.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+TATACHEM.NS,170890510336.0,Basic Materials,Chemicals,2026-03-14
+TATACOMM.NS,398458486784.0,Communication Services,Telecom Services,2026-03-14
+TCS.NS,8721399808000.0,Technology,Information Technology Services,2026-03-14
+TATACONSUM.NS,1072284958720.0,Consumer Defensive,Packaged Foods,2026-03-14
+TATAELXSI.NS,265072394240.0,Technology,Software - Application,2026-03-14
+TATAINVEST.NS,314550976512.0,Financial Services,Asset Management,2026-03-14
+TMPV.NS,1156634771456.0,Consumer Cyclical,Auto Manufacturers,2026-03-14
+TATAPOWER.NS,1261999357952.0,Utilities,Utilities - Independent Power Producers,2026-03-14
+TATASTEEL.NS,2288708747264.0,Basic Materials,Steel,2026-03-14
+TATATECH.NS,219370913792.0,Technology,Information Technology Services,2026-03-14
+TTML.NS,74786603008.0,Communication Services,Telecom Services,2026-03-14
+TECHM.NS,1180485550080.0,Technology,Information Technology Services,2026-03-14
+TECHNOE.NS,126371119104.0,Industrials,Engineering & Construction,2026-03-14
+TEJASNET.NS,75283685376.0,Technology,Communication Equipment,2026-03-14
+NIACL.NS,222022369280.0,Financial Services,Insurance - Diversified,2026-03-14
+RAMCOCEM.NS,230857654272.0,Basic Materials,Building Materials,2026-03-14
+THERMAX.NS,362840621056.0,Industrials,Conglomerates,2026-03-14
+TIMKEN.NS,259650519040.0,Industrials,Tools & Accessories,2026-03-14
+TITAGARH.NS,86110404608.0,Industrials,Railroads,2026-03-14
+TITAN.NS,3613112664064.0,Consumer Cyclical,Luxury Goods,2026-03-14
+TORNTPHARM.NS,1485775437824.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+TORNTPOWER.NS,736354304000.0,Utilities,Utilities - Independent Power Producers,2026-03-14
+TARIL.NS,83100909568.0,Industrials,Electrical Equipment & Parts,2026-03-14
+TRENT.NS,1239869161472.0,Consumer Cyclical,Apparel Retail,2026-03-14
+TRIDENT.NS,117019222016.0,Consumer Cyclical,Textile Manufacturing,2026-03-14
+TRIVENI.NS,76368838656.0,Consumer Defensive,Confectioners,2026-03-14
+TRITURBINE.NS,146055495680.0,Industrials,Specialty Industrial Machinery,2026-03-14
+TIINDIA.NS,475772125184.0,Industrials,Conglomerates,2026-03-14
+UCOBANK.NS,317717250048.0,Financial Services,Banks - Regional,2026-03-14
+UNOMINDA.NS,585038299136.0,Consumer Cyclical,Auto Parts,2026-03-14
+UPL.NS,515116204032.0,Basic Materials,Agricultural Inputs,2026-03-14
+UTIAMC.NS,122653925376.0,Financial Services,Asset Management,2026-03-14
+ULTRACEMCO.NS,3122950045696.0,Basic Materials,Building Materials,2026-03-14
+UNIONBANK.NS,1327676653568.0,Financial Services,Banks - Regional,2026-03-14
+UBL.NS,434338332672.0,Consumer Defensive,Beverages - Brewers,2026-03-14
+UNITDSPR.NS,956096184320.0,Consumer Defensive,Beverages - Wineries & Distilleries,2026-03-14
+USHAMART.NS,124270231552.0,Basic Materials,Steel,2026-03-14
+VGUARD.NS,139630280704.0,Industrials,Electrical Equipment & Parts,2026-03-14
+DBREALTY.NS,53654876160.0,Real Estate,Real Estate - Development,2026-03-14
+VTL.NS,155248132096.0,Consumer Cyclical,Textile Manufacturing,2026-03-14
+VBL.NS,1357234438144.0,Consumer Defensive,Beverages - Non-Alcoholic,2026-03-14
+MANYAVAR.NS,83193987072.0,Consumer Cyclical,Apparel Manufacturing,2026-03-14
+VEDL.NS,2694879117312.0,Basic Materials,Other Industrial Metals & Mining,2026-03-14
+VENTIVE.NS,151580180480.0,Consumer Cyclical,Lodging,2026-03-14
+VIJAYA.NS,95776251904.0,Healthcare,Diagnostics & Research,2026-03-14
+VMM.NS,480337985536.0,Consumer Cyclical,Department Stores,2026-03-14
+IDEA.NS,1004339986432.0,Communication Services,Telecom Services,2026-03-14
+VOLTAS.NS,467937165312.0,Consumer Cyclical,"Furnishings, Fixtures & Appliances",2026-03-14
+WAAREEENER.NS,784281698304.0,Technology,Solar,2026-03-14
+WELCORP.NS,211015892992.0,Basic Materials,Steel,2026-03-14
+WELSPUNLIV.NS,107235303424.0,Consumer Cyclical,Textile Manufacturing,2026-03-14
+WHIRLPOOL.NS,106314825728.0,Consumer Cyclical,"Furnishings, Fixtures & Appliances",2026-03-14
+WIPRO.NS,2070168862720.0,Technology,Information Technology Services,2026-03-14
+WOCKPHARMA.NS,196826775552.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+YESBANK.NS,590230257664.0,Financial Services,Banks - Regional,2026-03-14
+ZFCVINDIA.NS,258035007488.0,Consumer Cyclical,Auto Parts,2026-03-14
+ZEEL.NS,74978140160.0,Communication Services,Broadcasting,2026-03-14
+ZENTEC.NS,122774568960.0,Industrials,Aerospace & Defense,2026-03-14
+ZENSARTECH.NS,125361414144.0,Technology,Information Technology Services,2026-03-14
+ZYDUSLIFE.NS,911846473728.0,Healthcare,Drug Manufacturers - Specialty & Generic,2026-03-14
+ECLERX.NS,292108959744.0,Technology,Information Technology Services,2026-03-14

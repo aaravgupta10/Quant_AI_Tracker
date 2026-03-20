@@ -11,7 +11,17 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import yfinance as yf
+
+def _get_retry_session() -> requests.Session:
+    session = requests.Session()
+    retry = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data" / "market_intelligence"
@@ -19,7 +29,7 @@ REPORT_DIR = ROOT / "reports"
 META_PATH = DATA_DIR / "nifty500_metadata.csv"
 MASTER_PATH = DATA_DIR / "daily_snapshots.csv"
 
-DEFAULT_RECIPIENT = "aaravgupta1009@gmail.com"
+DEFAULT_RECIPIENT = os.environ.get("GMAIL_RECIPIENT_EMAIL")
 
 
 def ensure_dirs() -> None:
@@ -30,7 +40,8 @@ def ensure_dirs() -> None:
 def get_nifty500_constituents() -> pd.DataFrame:
     url = "https://www.niftyindices.com/IndexConstituent/ind_nifty500list.csv"
     headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers, timeout=30)
+    session = _get_retry_session()
+    response = session.get(url, headers=headers, timeout=30)
     response.raise_for_status()
     df = pd.read_csv(io.StringIO(response.text))
     df.columns = [c.strip() for c in df.columns]
@@ -122,7 +133,7 @@ def fetch_ohlcv_and_indicators(tickers: list[str], lookback: str = "3mo") -> pd.
             tickers=batch,
             period=lookback,
             interval="1d",
-            auto_adjust=False,
+            auto_adjust=True,
             progress=False,
             threads=True,
             group_by="ticker",
@@ -254,7 +265,7 @@ def _html_table(df: pd.DataFrame, cols: list[str]) -> str:
 
 
 def _nse_session() -> requests.Session:
-    session = requests.Session()
+    session = _get_retry_session()
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -648,15 +659,15 @@ def generate_html_report(parts: dict) -> str:
 
 def parse_recipients(raw: str | None) -> list[str]:
     if not raw:
-        return [DEFAULT_RECIPIENT]
+        return [DEFAULT_RECIPIENT] if DEFAULT_RECIPIENT else []
     return [x.strip() for x in raw.split(",") if x.strip()]
 
 
 def send_gmail_report(subject: str, html_body: str, recipients: list[str]) -> None:
-    sender = os.getenv("GMAIL_SENDER_EMAIL", DEFAULT_RECIPIENT)
+    sender = os.getenv("GMAIL_SENDER_EMAIL")
     app_password = os.getenv("GMAIL_APP_PASSWORD", "")
-    if not app_password:
-        raise RuntimeError("GMAIL_APP_PASSWORD is not set. Cannot send email.")
+    if not sender or not app_password:
+        raise RuntimeError("GMAIL_SENDER_EMAIL or GMAIL_APP_PASSWORD is not set. Cannot send email.")
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
@@ -734,7 +745,7 @@ def run_pipeline(as_of: str | None = None, recipients_raw: str | None = None, se
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Nifty 500 Daily Market Intelligence Pipeline")
     parser.add_argument("--date", type=str, default=None, help="Optional YYYY-MM-DD valuation date filter")
-    parser.add_argument("--email-to", type=str, default=DEFAULT_RECIPIENT, help="Comma-separated recipients")
+    parser.add_argument("--email-to", type=str, default=None, help="Comma-separated recipients")
     parser.add_argument("--no-email", action="store_true", help="Disable email sending")
     return parser.parse_args()
 

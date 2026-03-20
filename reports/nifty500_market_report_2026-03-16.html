@@ -1,0 +1,704 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body { font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5; }
+    .container { max-width: 980px; margin: 0 auto; padding: 16px; }
+    h1, h2, h3 { color: #0f172a; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 8px; }
+    .metric { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px; }
+    table.report-table { border-collapse: collapse; width: 100%; margin: 8px 0 14px 0; font-size: 13px; }
+    table.report-table th, table.report-table td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
+    table.report-table th { background: #f3f4f6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Nifty 500 Daily Market Report (2026-03-16)</h1>
+
+    <div class="card">
+      <h2>Market Summary</h2>
+      <div class="metrics">
+        <div class="metric"><b>Sentiment:</b> Risk-Off</div>
+        <div class="metric"><b>Advance/Decline:</b> 216 / 282 (A/D 0.77)</div>
+        <div class="metric"><b>Average Return:</b> -0.38%</div>
+        <div class="metric"><b>% Above Previous Close:</b> 43.20%</div>
+      </div>
+    </div>
+
+    <h2>Top Movers</h2>
+    <h3>Top 10 Gainers</h3>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>ticker</th>
+      <th>sector</th>
+      <th>close</th>
+      <th>pct_change</th>
+      <th>volume</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MRPL.NS</td>
+      <td>Energy</td>
+      <td>206.77</td>
+      <td>16.07%</td>
+      <td>145,182,084</td>
+    </tr>
+    <tr>
+      <td>ITI.NS</td>
+      <td>Technology</td>
+      <td>277.15</td>
+      <td>14.38%</td>
+      <td>87,087,520</td>
+    </tr>
+    <tr>
+      <td>CHENNPETRO.NS</td>
+      <td>Energy</td>
+      <td>988.55</td>
+      <td>7.66%</td>
+      <td>6,230,068</td>
+    </tr>
+    <tr>
+      <td>OLAELEC.NS</td>
+      <td>Consumer Cyclical</td>
+      <td>24.31</td>
+      <td>5.37%</td>
+      <td>80,200,873</td>
+    </tr>
+    <tr>
+      <td>TEJASNET.NS</td>
+      <td>Technology</td>
+      <td>446.85</td>
+      <td>5.28%</td>
+      <td>28,663,452</td>
+    </tr>
+    <tr>
+      <td>ADANIPOWER.NS</td>
+      <td>Utilities</td>
+      <td>154.06</td>
+      <td>5.11%</td>
+      <td>90,205,120</td>
+    </tr>
+    <tr>
+      <td>CUB.NS</td>
+      <td>Financial Services</td>
+      <td>242.55</td>
+      <td>4.77%</td>
+      <td>9,441,279</td>
+    </tr>
+    <tr>
+      <td>ULTRACEMCO.NS</td>
+      <td>Basic Materials</td>
+      <td>11,099.00</td>
+      <td>4.55%</td>
+      <td>728,029</td>
+    </tr>
+    <tr>
+      <td>SAREGAMA.NS</td>
+      <td>Communication Services</td>
+      <td>357.40</td>
+      <td>4.32%</td>
+      <td>2,522,575</td>
+    </tr>
+    <tr>
+      <td>AADHARHFC.NS</td>
+      <td>Financial Services</td>
+      <td>478.75</td>
+      <td>4.13%</td>
+      <td>429,398</td>
+    </tr>
+  </tbody>
+</table>
+
+    <h3>Top 10 Losers</h3>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>ticker</th>
+      <th>sector</th>
+      <th>close</th>
+      <th>pct_change</th>
+      <th>volume</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>IDBI.NS</td>
+      <td>Financial Services</td>
+      <td>76.90</td>
+      <td>-16.58%</td>
+      <td>124,967,914</td>
+    </tr>
+    <tr>
+      <td>ATGL.NS</td>
+      <td>Utilities</td>
+      <td>522.05</td>
+      <td>-7.75%</td>
+      <td>18,275,500</td>
+    </tr>
+    <tr>
+      <td>BANDHANBNK.NS</td>
+      <td>Financial Services</td>
+      <td>162.54</td>
+      <td>-7.38%</td>
+      <td>36,300,430</td>
+    </tr>
+    <tr>
+      <td>GESHIP.NS</td>
+      <td>Industrials</td>
+      <td>1,373.40</td>
+      <td>-5.93%</td>
+      <td>1,139,527</td>
+    </tr>
+    <tr>
+      <td>FACT.NS</td>
+      <td>Basic Materials</td>
+      <td>805.55</td>
+      <td>-5.40%</td>
+      <td>1,510,931</td>
+    </tr>
+    <tr>
+      <td>MAPMYINDIA.NS</td>
+      <td>Technology</td>
+      <td>887.40</td>
+      <td>-5.01%</td>
+      <td>234,694</td>
+    </tr>
+    <tr>
+      <td>RELINFRA.NS</td>
+      <td>Utilities</td>
+      <td>81.23</td>
+      <td>-4.99%</td>
+      <td>841,956</td>
+    </tr>
+    <tr>
+      <td>IOC.NS</td>
+      <td>Energy</td>
+      <td>148.96</td>
+      <td>-4.84%</td>
+      <td>35,677,726</td>
+    </tr>
+    <tr>
+      <td>SARDAEN.NS</td>
+      <td>Basic Materials</td>
+      <td>505.40</td>
+      <td>-4.70%</td>
+      <td>737,936</td>
+    </tr>
+    <tr>
+      <td>BPCL.NS</td>
+      <td>Energy</td>
+      <td>304.95</td>
+      <td>-4.49%</td>
+      <td>18,587,690</td>
+    </tr>
+  </tbody>
+</table>
+
+    <h2>Sector Performance</h2>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>sector</th>
+      <th>pct_change</th>
+      <th>stocks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Energy</td>
+      <td>0.35%</td>
+      <td>15.00</td>
+    </tr>
+    <tr>
+      <td>Consumer Defensive</td>
+      <td>0.14%</td>
+      <td>29.00</td>
+    </tr>
+    <tr>
+      <td>Financial Services</td>
+      <td>-0.01%</td>
+      <td>92.00</td>
+    </tr>
+    <tr>
+      <td>Consumer Cyclical</td>
+      <td>-0.01%</td>
+      <td>66.00</td>
+    </tr>
+    <tr>
+      <td>Technology</td>
+      <td>-0.07%</td>
+      <td>38.00</td>
+    </tr>
+    <tr>
+      <td>Communication Services</td>
+      <td>-0.14%</td>
+      <td>14.00</td>
+    </tr>
+    <tr>
+      <td>Basic Materials</td>
+      <td>-0.50%</td>
+      <td>62.00</td>
+    </tr>
+    <tr>
+      <td>Industrials</td>
+      <td>-0.74%</td>
+      <td>94.00</td>
+    </tr>
+    <tr>
+      <td>Healthcare</td>
+      <td>-0.82%</td>
+      <td>54.00</td>
+    </tr>
+    <tr>
+      <td>Utilities</td>
+      <td>-1.20%</td>
+      <td>24.00</td>
+    </tr>
+    <tr>
+      <td>Real Estate</td>
+      <td>-1.69%</td>
+      <td>12.00</td>
+    </tr>
+  </tbody>
+</table>
+    <p><b>Best sector:</b> Energy (0.35%)<br/><b>Worst sector:</b> Real Estate (-1.69%)</p>
+
+    <h3>Sector Rotation (vs Prior 5-Day Avg)</h3>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>sector</th>
+      <th>pct_change</th>
+      <th>prior_5d_avg_return</th>
+      <th>momentum_delta</th>
+      <th>stocks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Consumer Cyclical</td>
+      <td>-0.01%</td>
+      <td>-3.10</td>
+      <td>3.09</td>
+      <td>66.00</td>
+    </tr>
+    <tr>
+      <td>Energy</td>
+      <td>0.35%</td>
+      <td>-2.65</td>
+      <td>3.00</td>
+      <td>15.00</td>
+    </tr>
+    <tr>
+      <td>Basic Materials</td>
+      <td>-0.50%</td>
+      <td>-3.16</td>
+      <td>2.66</td>
+      <td>62.00</td>
+    </tr>
+    <tr>
+      <td>Industrials</td>
+      <td>-0.74%</td>
+      <td>-3.31</td>
+      <td>2.57</td>
+      <td>94.00</td>
+    </tr>
+    <tr>
+      <td>Communication Services</td>
+      <td>-0.14%</td>
+      <td>-2.61</td>
+      <td>2.47</td>
+      <td>14.00</td>
+    </tr>
+    <tr>
+      <td>Technology</td>
+      <td>-0.07%</td>
+      <td>-2.21</td>
+      <td>2.14</td>
+      <td>38.00</td>
+    </tr>
+    <tr>
+      <td>Financial Services</td>
+      <td>-0.01%</td>
+      <td>-2.13</td>
+      <td>2.13</td>
+      <td>92.00</td>
+    </tr>
+    <tr>
+      <td>Consumer Defensive</td>
+      <td>0.14%</td>
+      <td>-1.96</td>
+      <td>2.10</td>
+      <td>29.00</td>
+    </tr>
+    <tr>
+      <td>Healthcare</td>
+      <td>-0.82%</td>
+      <td>-2.29</td>
+      <td>1.47</td>
+      <td>54.00</td>
+    </tr>
+    <tr>
+      <td>Utilities</td>
+      <td>-1.20%</td>
+      <td>-1.91</td>
+      <td>0.71</td>
+      <td>24.00</td>
+    </tr>
+    <tr>
+      <td>Real Estate</td>
+      <td>-1.69%</td>
+      <td>-2.15</td>
+      <td>0.47</td>
+      <td>12.00</td>
+    </tr>
+  </tbody>
+</table>
+
+    <h2>Derivatives Positioning</h2>
+    <h3>FII/DII Open Interest (Derivatives Segment)</h3>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>client_type</th>
+      <th>long_value</th>
+      <th>short_value</th>
+      <th>net_value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DII</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>FII</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+
+    <h3>FII/DII Trading Volume (Derivatives Segment)</h3>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>client_type</th>
+      <th>buy_value</th>
+      <th>sell_value</th>
+      <th>net_flow</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DII</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>FII</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+
+    <h3>Daily Put-Call Ratio</h3>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>symbol</th>
+      <th>put_open_interest</th>
+      <th>call_open_interest</th>
+      <th>put_call_ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NIFTY</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>BANKNIFTY</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+    <h2>Notable Activity</h2>
+    <h3>Unusual Volume (>=2x 20-day average)</h3>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>ticker</th>
+      <th>sector</th>
+      <th>pct_change</th>
+      <th>volume</th>
+      <th>avg_volume_20</th>
+      <th>unusual_volume_ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ITI.NS</td>
+      <td>Technology</td>
+      <td>14.38%</td>
+      <td>87,087,520</td>
+      <td>4,610,790</td>
+      <td>18.89</td>
+    </tr>
+    <tr>
+      <td>MRPL.NS</td>
+      <td>Energy</td>
+      <td>16.07%</td>
+      <td>145,182,084</td>
+      <td>18,110,942</td>
+      <td>8.02</td>
+    </tr>
+    <tr>
+      <td>SAREGAMA.NS</td>
+      <td>Communication Services</td>
+      <td>4.32%</td>
+      <td>2,522,575</td>
+      <td>397,650</td>
+      <td>6.34</td>
+    </tr>
+    <tr>
+      <td>PFIZER.NS</td>
+      <td>Healthcare</td>
+      <td>2.74%</td>
+      <td>119,436</td>
+      <td>19,971</td>
+      <td>5.98</td>
+    </tr>
+    <tr>
+      <td>IDBI.NS</td>
+      <td>Financial Services</td>
+      <td>-16.58%</td>
+      <td>124,967,914</td>
+      <td>24,372,586</td>
+      <td>5.13</td>
+    </tr>
+    <tr>
+      <td>TIMKEN.NS</td>
+      <td>Industrials</td>
+      <td>0.07%</td>
+      <td>337,748</td>
+      <td>70,065</td>
+      <td>4.82</td>
+    </tr>
+    <tr>
+      <td>PGHH.NS</td>
+      <td>Consumer Defensive</td>
+      <td>-3.43%</td>
+      <td>47,400</td>
+      <td>10,462</td>
+      <td>4.53</td>
+    </tr>
+    <tr>
+      <td>THERMAX.NS</td>
+      <td>Industrials</td>
+      <td>1.19%</td>
+      <td>614,176</td>
+      <td>145,658</td>
+      <td>4.22</td>
+    </tr>
+    <tr>
+      <td>ADANIPOWER.NS</td>
+      <td>Utilities</td>
+      <td>5.11%</td>
+      <td>90,205,120</td>
+      <td>22,302,374</td>
+      <td>4.04</td>
+    </tr>
+    <tr>
+      <td>CUB.NS</td>
+      <td>Financial Services</td>
+      <td>4.77%</td>
+      <td>9,441,279</td>
+      <td>2,353,396</td>
+      <td>4.01</td>
+    </tr>
+    <tr>
+      <td>BANDHANBNK.NS</td>
+      <td>Financial Services</td>
+      <td>-7.38%</td>
+      <td>36,300,430</td>
+      <td>10,835,686</td>
+      <td>3.35</td>
+    </tr>
+    <tr>
+      <td>MARUTI.NS</td>
+      <td>Consumer Cyclical</td>
+      <td>1.32%</td>
+      <td>1,416,122</td>
+      <td>474,454</td>
+      <td>2.98</td>
+    </tr>
+    <tr>
+      <td>ATGL.NS</td>
+      <td>Utilities</td>
+      <td>-7.75%</td>
+      <td>18,275,500</td>
+      <td>6,186,992</td>
+      <td>2.95</td>
+    </tr>
+    <tr>
+      <td>JYOTHYLAB.NS</td>
+      <td>Consumer Defensive</td>
+      <td>-2.16%</td>
+      <td>1,539,057</td>
+      <td>525,647</td>
+      <td>2.93</td>
+    </tr>
+    <tr>
+      <td>ASTERDM.NS</td>
+      <td>Healthcare</td>
+      <td>-2.66%</td>
+      <td>2,399,923</td>
+      <td>853,755</td>
+      <td>2.81</td>
+    </tr>
+  </tbody>
+</table>
+
+    <h3>Largest Moves vs Historical Volatility</h3>
+    <table class="dataframe report-table">
+  <thead>
+    <tr style="text-align: left;">
+      <th>ticker</th>
+      <th>sector</th>
+      <th>pct_change</th>
+      <th>volatility_20d_pct</th>
+      <th>move_vs_vol</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ITI.NS</td>
+      <td>Technology</td>
+      <td>14.38%</td>
+      <td>4.03%</td>
+      <td>3.57</td>
+    </tr>
+    <tr>
+      <td>IDBI.NS</td>
+      <td>Financial Services</td>
+      <td>-16.58%</td>
+      <td>4.65%</td>
+      <td>3.56</td>
+    </tr>
+    <tr>
+      <td>MRPL.NS</td>
+      <td>Energy</td>
+      <td>16.07%</td>
+      <td>4.97%</td>
+      <td>3.23</td>
+    </tr>
+    <tr>
+      <td>PGHH.NS</td>
+      <td>Consumer Defensive</td>
+      <td>-3.43%</td>
+      <td>1.25%</td>
+      <td>2.75</td>
+    </tr>
+    <tr>
+      <td>THELEELA.NS</td>
+      <td>Consumer Cyclical</td>
+      <td>-3.77%</td>
+      <td>1.47%</td>
+      <td>2.56</td>
+    </tr>
+    <tr>
+      <td>BANDHANBNK.NS</td>
+      <td>Financial Services</td>
+      <td>-7.38%</td>
+      <td>2.99%</td>
+      <td>2.47</td>
+    </tr>
+    <tr>
+      <td>AAVAS.NS</td>
+      <td>Financial Services</td>
+      <td>-3.56%</td>
+      <td>1.47%</td>
+      <td>2.43</td>
+    </tr>
+    <tr>
+      <td>MAPMYINDIA.NS</td>
+      <td>Technology</td>
+      <td>-5.01%</td>
+      <td>2.08%</td>
+      <td>2.41</td>
+    </tr>
+    <tr>
+      <td>BIKAJI.NS</td>
+      <td>Consumer Defensive</td>
+      <td>3.30%</td>
+      <td>1.41%</td>
+      <td>2.33</td>
+    </tr>
+    <tr>
+      <td>GESHIP.NS</td>
+      <td>Industrials</td>
+      <td>-5.93%</td>
+      <td>2.66%</td>
+      <td>2.23</td>
+    </tr>
+    <tr>
+      <td>ALOKINDS.NS</td>
+      <td>Consumer Cyclical</td>
+      <td>-3.22%</td>
+      <td>1.45%</td>
+      <td>2.22</td>
+    </tr>
+    <tr>
+      <td>CRISIL.NS</td>
+      <td>Financial Services</td>
+      <td>-3.80%</td>
+      <td>1.73%</td>
+      <td>2.20</td>
+    </tr>
+    <tr>
+      <td>DEEPAKNTR.NS</td>
+      <td>Basic Materials</td>
+      <td>-3.91%</td>
+      <td>1.79%</td>
+      <td>2.19</td>
+    </tr>
+    <tr>
+      <td>CHENNPETRO.NS</td>
+      <td>Energy</td>
+      <td>7.66%</td>
+      <td>3.51%</td>
+      <td>2.18</td>
+    </tr>
+    <tr>
+      <td>ADANIPOWER.NS</td>
+      <td>Utilities</td>
+      <td>5.11%</td>
+      <td>2.39%</td>
+      <td>2.13</td>
+    </tr>
+  </tbody>
+</table>
+
+    <h2>Key Observations</h2>
+    <ol><li>Breadth closed at 216:282 (A/D 0.77) with average stock return -0.38%.</li><li>Leadership came from Energy (0.35%), while Real Estate lagged (-1.69%).</li><li>37 stocks traded above 2x 20-day average volume, signaling concentrated participation.</li><li>FII derivatives positioning was net short (0 contracts equivalent).</li></ol>
+  </div>
+</body>
+</html>

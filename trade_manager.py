@@ -62,6 +62,12 @@ if __name__ == "__main__":
         if trade_date.upper() == 'EXIT': break
         if not trade_date:
             trade_date = datetime.now().strftime('%Y-%m-%d')
+        else:
+            try:
+                datetime.strptime(trade_date, '%Y-%m-%d')
+            except ValueError:
+                print("Invalid date format. Must be YYYY-MM-DD. Let's start over.\n")
+                continue
             
         # Confirm and log
         log_trade(ticker, action, quantity, price, trade_date)

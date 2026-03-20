@@ -14,25 +14,34 @@ supabase: Client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get(
 
 
 def fetch_ledger() -> pd.DataFrame | None:
-    response = supabase.table("transactions").select("*").execute()
-    if not response.data:
+    try:
+        response = supabase.table("transactions").select("*").execute()
+        if not response.data:
+            return None
+        df = pd.DataFrame(response.data)
+        return normalize_ledger_dates(df)
+    except Exception as e:
+        print(f"Error fetching ledger: {e}")
         return None
-    df = pd.DataFrame(response.data)
-    return normalize_ledger_dates(df)
 
 
 def _get_price_matrix(start_date: str, end_date: str, tickers: list[str]) -> pd.DataFrame:
     if not tickers:
         return pd.DataFrame(index=pd.date_range(start=start_date, end=end_date, freq="D"))
 
-    market_response = (
-        supabase.table("market_data")
-        .select("date, ticker, close_price")
-        .gte("date", start_date)
-        .in_("ticker", tickers)
-        .execute()
-    )
-    prices_df = pd.DataFrame(market_response.data)
+    try:
+        market_response = (
+            supabase.table("market_data")
+            .select("date, ticker, close_price")
+            .gte("date", start_date)
+            .in_("ticker", tickers)
+            .execute()
+        )
+        data = market_response.data
+    except Exception as e:
+        print(f"Error fetching market data: {e}")
+        data = []
+    prices_df = pd.DataFrame(data)
     calendar = pd.date_range(start=start_date, end=end_date, freq="D")
 
     if prices_df.empty:
@@ -212,7 +221,10 @@ if __name__ == "__main__":
                     }
                 )
 
-            for i in range(0, len(records_to_upsert), 500):
-                supabase.table("portfolio_metrics").upsert(records_to_upsert[i : i + 500], on_conflict="date").execute()
+            try:
+                for i in range(0, len(records_to_upsert), 500):
+                    supabase.table("portfolio_metrics").upsert(records_to_upsert[i : i + 500], on_conflict="date").execute()
+            except Exception as e:
+                print(f"Error upserting metrics to Supabase: {e}")
 
             print("\n--- ENGINE EXECUTION COMPLETE ---")
