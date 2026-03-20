@@ -160,9 +160,9 @@ pnl_source = "quant_engine snapshot" if engine_total_nav is not None else "live 
 all_time_pnl = pnl_nav_base - open_cost_basis
 pnl_pct = (all_time_pnl / abs(open_cost_basis) * 100) if open_cost_basis != 0 else 0.0
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "📊 Portfolio Curve", "⚖️ Auto-Rebalancer", "🎲 Monte Carlo Risk", 
-    "🧪 Correlation Sandbox", "📝 Trade Manager", "🔮 DCF Valuation", "📈 AI Optimizer"
+    "🧪 Correlation Sandbox", "📝 Trade Manager", "🔮 DCF Valuation", "📈 AI Optimizer", "🚧 Risk Desk"
 ])
 
 with tab1:
@@ -352,7 +352,7 @@ with tab4:
         else:
             with st.spinner(f"Calculating matrix for {target_ticker}..."):
                 try:
-                    all_tickers = list(dict.fromkeys(current_tickers + [target_ticker, "^NSEI"]))
+                    all_tickers = list(dict.fromkeys(current_tickers + [target_ticker, "^NSEI", "INR=X", "CL=F", "^IN09YR"]))
                     data = yf.download(all_tickers, period="1y", interval="1d")['Close']
                     returns = data.dropna(axis=1, how='all').pct_change().dropna()
                     if target_ticker not in returns.columns or '^NSEI' not in returns.columns: st.error("Insufficient market data.")
@@ -500,4 +500,58 @@ with tab7:
                             st.plotly_chart(fig_weights, use_container_width=True)
                         else: st.error("Optimization failed to converge.")
                 except Exception as e: st.error(f"Failed: {e}")
+
+with tab8:
+    st.subheader("Institutional Risk Desk: VaR & Kelly Sizing")
+    
+    st.markdown("### 1. Daily Value-at-Risk (VaR) & Expected Shortfall (CVaR)")
+    st.markdown("Calculates the absolute maximum daily Rupee loss expected at 95% and 99% confidence intervals based on 1-year compounded historical variance.")
+    
+    if st.button("Calculate Portfolio Tail Risk"):
+        if not current_tickers:
+            st.warning("No active positions.")
+        else:
+            with st.spinner("Crunching historical portfolio covariances..."):
+                try:
+                    data = yf.download(current_tickers, period="1y", interval="1d")['Close']
+                    if len(current_tickers) == 1: data = data.to_frame(name=current_tickers[0])
+                    returns = data.dropna(axis=1, how='all').pct_change().dropna()
+                    
+                    if not returns.empty:
+                        weights_arr = np.array([(live_prices.get(t, 0.0) * active_positions.get(t, 0.0)) / live_equity for t in returns.columns])
+                        weights_arr = weights_arr / np.sum(weights_arr)
+                        
+                        port_returns = returns.dot(weights_arr)
+                        
+                        var_95 = np.percentile(port_returns, 5)
+                        var_99 = np.percentile(port_returns, 1)
+                        
+                        cvar_95 = port_returns[port_returns <= var_95].mean()
+                        cvar_99 = port_returns[port_returns <= var_99].mean()
+                        
+                        st.error(f"**95% Confidence VaR:** You will not lose more than **₹{abs(var_95 * live_equity):,.2f}** in 19 out of 20 trading days.")
+                        st.error(f"**99% Confidence VaR:** You will not lose more than **₹{abs(var_99 * live_equity):,.2f}** in 99 out of 100 trading days.")
+                        st.warning(f"**Tail-Risk (Black Swan 99% CVaR):** If the 1% worst-case scenario hits, expect an average loss of **₹{abs(cvar_99 * live_equity):,.2f}**.")
+                        
+                except Exception as e:
+                    st.error(f"Failed to calculate risk: {e}")
+                    
+    st.divider()
+    st.markdown("### 2. Fractional Kelly Criterion Position Sizer")
+    st.markdown("Calculates the mathematically optimal capital allocation for your next trade to maximize geometric growth.")
+    
+    col_k1, col_k2 = st.columns(2)
+    with col_k1:
+        win_prob = st.slider("Historical Win Probability (%)", 10.0, 90.0, 50.0, 1.0) / 100.0
+    with col_k2:
+        reward_risk = st.number_input("Average Reward-to-Risk Ratio (e.g., Target 15% / Stop 5% = 3.0)", min_value=0.1, max_value=20.0, value=2.0, step=0.1)
+        
+    kelly_fraction = win_prob - ((1.0 - win_prob) / reward_risk)
+    half_kelly = kelly_fraction / 2.0
+    
+    st.info(f"**Optimal Kelly Allocation (Aggressive):** {max(0, kelly_fraction)*100:.2f}% of Total Equity")
+    st.success(f"**Actionable Half-Kelly (Recommended):** {max(0, half_kelly)*100:.2f}%  (≈ ₹{max(0, half_kelly) * live_total_nav:,.2f})")
+    
+    if kelly_fraction <= 0:
+        st.error("📉 Negative Expectancy. Mathematically, you will lose money over the long term on this setup. Do not take this trade.")
 
